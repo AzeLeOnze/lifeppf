@@ -357,7 +357,9 @@
       edu: { st: 'none', i: 0, g: 12, clubs: [], fil: null, sup: null, cap: null, rep: 0, warn: 0 },
       dip: [], job: null, cv: [], home: 'parents', items: [], ill: [], add: {}, diet: 'equilibre',
       flags: {}, evLast: {}, done: {}, acts: 0, ap: 0, clock: null, yr: {},
-      ori: null, oriAge: L.ri(12, 14), ints: [], preg: null, anec: {}, lonely: 0, depr: 0, casier: 0, prison: 0,
+      ori: null, oriAge: L.ri(12, 14), ints: [], preg: null, anec: {},
+      mots: {}, motQ: {}, motEv: {}, intEv: {}, cold: [], gun: 0,
+ lonely: 0, depr: 0, casier: 0, prison: 0,
       queue: [], dead: null, wealth: o.wealth || 'moyenne', offers: null, xpLife: 0,
       novel: null, yt: null, permis: 0, loan: null, chomage: null, retired: 0, pension: 0, travels: [],
       stats: { mar: 0, kids: 0, jobs: 0, grandkids: 0 }, budget: null, cnt: {}
@@ -480,24 +482,59 @@
   G.ADD = ADD;
 
   // ---------- police ----------
-  G.arrest = function (lvl) {
+  // lvl : 1 = petit délit, 2 = délit, 3 = crime ; motif : clé de D.CRIMES ; vic : la victime (personne ou { tmp })
+  G.arrest = function (lvl, motif, vic) {
     const l = S.life, a = l.me.age;
     const c = G.ctx({ par: G.role('par') });
+    const cr = D.CRIMES[motif];
+    const grave = cr && cr.grave;
     G.ach('police');
-    if (a < 13) return G.say('La police te ramène chez tes parents. Tu es [privé|privée] de dessert jusqu’à nouvel ordre.', { b: -3, rq: { par: -5 } }, c, 'bad');
-    if (a < 18) {
-      l.edu.warn++;
-      return G.say('Convocation chez le juge des enfants. Travaux d’intérêt général : tu repeins un abribus pendant tout l’été.', { b: -5, s: -2, rq: { par: -6 } }, c, 'bad');
+    if (a < 13 && !grave) return G.say('La police te ramène chez tes parents. Tu es [privé|privée] de dessert jusqu’à nouvel ordre.', { b: -3, rq: { par: -5 } }, c, 'bad');
+    // petit délit, première fois : réglé sur place, sans procès
+    if (!grave && !l.casier && (lvl <= 1 || a < 18)) {
+      if (a < 18) {
+        l.edu.warn++;
+        return G.say('Convocation chez le juge des enfants. Travaux d’intérêt général : tu repeins un abribus pendant tout l’été.', { b: -5, s: -2, rq: { par: -6 } }, c, 'bad');
+      }
+      return G.say('Amende forfaitaire : 135 €. Le policier te souhaite une bonne journée. Il est sincère.', { m: -135, b: -2 }, c, 'bad');
     }
-    if (lvl <= 1) return G.say('Amende forfaitaire : 135 €. Le policier te souhaite une bonne journée. Il est sincère.', { m: -135, b: -2 }, c, 'bad');
-    if (lvl === 2 && l.casier && L.chance(0.5)) lvl = 3;
-    l.casier = 1;
-    if (lvl === 2) return G.say('Garde à vue, puis tribunal. Tu ressors avec un casier judiciaire et 800 € d’amende.', { m: -800, b: -6, s: -3 }, c, 'bad');
-    const n = L.ri(1, 3);
-    l.prison = n;
+    G.proces(motif || (lvl >= 3 ? 'violence' : 'vol'), vic);
+    return null;
+  };
+  // garde à vue → avocat → interrogatoire (3 questions) → verdict
+  G.proces = function (m, vic) {
+    const l = S.life;
+    const set = D.INTERRO[m] || D.INTERRO.violence;
+    const qs = L.shuffle(set.map(function (x, i) { return i; })).slice(0, 3);
+    let y = null;
+    if (vic) y = vic.id && !vic.tmp ? vic.id : { tmp: typeof vic.tmp === 'object' ? vic.tmp : { first: vic.first, last: vic.last, sex: vic.sex, age: vic.age } };
+    l.queue.unshift({ k: 'q', t: 'proces', m: m, s: 'garde', i: 0, qs: qs, pts: 0, law: 0, aveu: 0, ev: L.rand(0.3, 1), jg: L.pick(D.JUGES), js: L.pick(['severe', 'normal', 'normal', 'clement']), y: y });
+  };
+  function procCtx(q) {
+    const c = G.ctx();
+    if (q.y) c.r.y = typeof q.y === 'object' ? q.y.tmp : G.byId(q.y);
+    if (!c.r.y) c.r.y = { first: 'la victime', last: '', sex: 'F' };
+    return c;
+  }
+  // derrière les barreaux
+  G.jail = function (n, perpet) {
+    const l = S.life;
+    l.prison = perpet ? 99 : n;
+    l.perpet = perpet ? 1 : 0;
+    l.casier = 1; l.served = 0; l.pc = 0; l.appel = 0;
     if (l.job) G.loseJob('prison');
     G.ach('prison');
-    return G.say('Le tribunal te condamne à ' + n + ' an' + (n > 1 ? 's' : '') + ' de prison ferme.', { b: -14, s: -8 }, c, 'bad');
+    if (perpet) G.ach('perpet');
+    const part = G.partner();
+    if (part && (perpet || n >= 3) && L.chance(perpet ? 0.8 : 0.45)) {
+      G.breakup(part, true);
+      G.say('{X.n} ne t’attendra pas. Une lettre de rupture arrive au parloir.', { b: -8 }, G.ctx({ x: part }), 'bad');
+    }
+  };
+  // tuer quelqu'un : la personne disparaît de ta vie
+  G.kill = function (p) {
+    if (!p || p.tmp) return;
+    p.alive = false; p.dy = S.life.year; p.killed = 1;
   };
 
   // ---------- amour, enfants, animaux ----------
@@ -689,6 +726,9 @@
     milestones(l);
     if (!l.ori && a >= (l.oriAge || 13) && !l.queue.some(function (q) { return q.t === 'ori'; })) l.queue.push({ k: 'q', t: 'ori' });
     if (L.EV) L.EV.yearly(l);
+    if (L.M) L.M.yearly(l);
+    intYear(l);
+    crimeYear(l);
     l.queue.push({ k: 'checks', y: 1 });
     G.gainXP(5 + (a % 10 === 0 ? 10 : 0));
     G.emit('year');
@@ -710,6 +750,11 @@
   }
 
   function prisonYear(l) {
+    l.served = (l.served || 0) + 1;
+    if (l.perpet) {
+      if (l.served >= 18 && (l.pc || 0) >= 3 && L.chance(0.3)) { l.prison = 0; l.perpet = 0; return G.say('Libération conditionnelle après ' + l.served + ' ans ! Ta bonne conduite a fini par payer. Le monde a beaucoup changé.', { b: 12 }, null, 'good'); }
+      return G.say('Réclusion à perpétuité, année ' + l.served + '. Les jours se ressemblent tous.', { b: -2 }, null, 'bad');
+    }
     l.prison--;
     if (l.prison > 0) G.say('Encore ' + l.prison + ' an' + (l.prison > 1 ? 's' : '') + ' derrière les barreaux. Tu comptes les jours sur le mur.', { b: -3 }, null, 'bad');
     else G.say('Tu sors de prison. L’air libre a un goût de liberté… et de pot d’échappement.', { b: 8 }, null, 'good');
@@ -805,6 +850,49 @@
       l.stats.grandkids++;
       G.say('{X} t’annonce que tu vas être [grand-père|grand-mère] ! Tu as déjà acheté trois doudous.', { b: 6 }, G.ctx({ x: p }), 'fam');
     }
+  }
+
+  // ---------- centres d'intérêt : une découverte de temps en temps (chacune 2 fois par vie au plus) ----------
+  function intYear(l) {
+    const a = l.me.age;
+    if (a < 6 || !D.INT_EV || l.prison || l.queue.some(function (q) { return q.t === 'intev'; }) || !L.chance(0.13)) return;
+    l.intEv = l.intEv || {};
+    const cands = D.INTERESTS.filter(function (it) {
+      const e = D.INT_EV[it.id];
+      return e && a >= e.a && (l.intEv[it.id] || 0) < 2 && l.ints.indexOf(it.id) < 0 && (!it.new || l.year >= it.new) && (!e.need || G.role(e.need));
+    });
+    const it = L.pick(cands);
+    if (!it) return;
+    l.intEv[it.id] = (l.intEv[it.id] || 0) + 1;
+    const e = D.INT_EV[it.id], r = {};
+    if (e.need) r[e.need] = G.role(e.need).id;
+    l.queue.push({ k: 'q', t: 'intev', id: it.id, r: r });
+  }
+  // ---------- affaires non résolues, cavale, arme cachée ----------
+  function crimeYear(l) {
+    if (l.prison || l.me.age < 13) return;
+    if (l.fugitif && L.chance(0.3)) {
+      const n = (l.fugitif > 1 ? l.fugitif : 1) + 3;
+      l.fugitif = 0;
+      G.say('Fin de la cavale : la police te retrouve dans un camping, déguisé{e} en touriste. Retour en prison, avec un bonus.', { b: -10 }, null, 'bad');
+      G.jail(n);
+      return;
+    }
+    if (l.gun && l.me.age >= 18 && L.chance(0.03)) {
+      l.gun = 0;
+      G.say('Contrôle de police surprise : ils trouvent ton arme.', { b: -3 }, null, 'bad');
+      G.arrest(2, 'arme');
+      return;
+    }
+    l.cold = (l.cold || []).filter(function (x) {
+      if (l.year - x.y > 8) { G.say('Huit ans plus tard, l’enquête sur la mort de ' + L.esc(x.vn) + ' est classée sans suite. Tu respires, enfin.', { b: 3 }, null, ''); return false; }
+      if (L.chance(x.p || 0.12)) {
+        G.say('L’enquête sur la mort de ' + L.esc(x.vn) + ' rebondit : un témoin a parlé. La police frappe à ta porte à 6 h du matin.', { b: -8 }, null, 'bad');
+        G.arrest(3, x.m, x.vic);
+        return false;
+      }
+      return true;
+    });
   }
 
   // ---------- tes enfants : éducation, notes, avenir ----------
@@ -1098,7 +1186,110 @@
   }
   G.supChance = supChance;
   function cleanName(s) { return L.cap(String(s || '').replace(/[<>{}\[\]|]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24)); }
+  const LAWYERS = ['Maître Dupuis', 'Maître Benali', 'Maître Garnier', 'Maître Lefort', 'Maître Nguyen', 'Maître Rossi'];
   const Q = {
+    // ---------- le procès ----------
+    proces: {
+      view: function (q, l) {
+        const cr = D.CRIMES[q.m] || D.CRIMES.violence, c = procCtx(q), minor = l.me.age < 18;
+        if (q.s === 'garde') {
+          const evT = q.ev > 0.75 ? 'Les preuves contre toi sont <b>accablantes</b>.' : q.ev > 0.5 ? 'Le dossier contient des <b>indices sérieux</b>.' : 'Le dossier est <b>plutôt mince</b>.';
+          const m = l.money;
+          return {
+            kicker: 'GARDE À VUE', title: 'Au commissariat', ink: 'r',
+            text: L.T('Tu es [placé|placée] en garde à vue pour <b>' + cr.n + '</b>. ' + evT + ' Avant l’interrogatoire, tu as droit à un avocat.', c),
+            opts: [
+              { id: 'l0', l: 'Avocat commis d’office', sub: 'Gratuit. Il a quatorze dossiers aujourd’hui.' },
+              { id: 'l1', l: 'Avocat expérimenté', sub: L.money(2500) + ' · une défense solide', dis: m < 2500 },
+              { id: 'l2', l: 'Ténor du barreau', sub: L.money(15000) + ' · le meilleur de la ville', dis: m < 15000 }
+            ]
+          };
+        }
+        if (q.s === 'interro') {
+          const set = D.INTERRO[q.m] || D.INTERRO.violence, it = set[q.qs[q.i]];
+          return {
+            kicker: 'INTERROGATOIRE · ' + (q.i + 1) + '/' + q.qs.length, title: L.T(it.q, c), ink: 'r',
+            text: 'L’enquêteur te fixe sans cligner des yeux. ' + (q.law === 2 ? 'Ton avocat te fait un signe discret : réfléchis bien.' : q.law ? 'Ton avocat prend des notes à côté de toi.' : 'Ton avocat commis d’office cherche ton nom dans son dossier.'),
+            opts: it.a.map(function (a, j) { return { id: 'a' + j, l: L.T(a.l, c) }; })
+          };
+        }
+        const F = /^(Martine|Sylvie|Nadia|Catherine)/.test(q.jg);
+        const sev = { severe: 'connu' + (F ? 'e' : '') + ' pour sa sévérité légendaire', normal: 'qui a l’air fatigué' + (F ? 'e' : ''), clement: 'qui a la réputation d’être compréhensi' + (F ? 've' : 'f') }[q.js];
+        const plea = ['Ton avocat commis d’office plaide trois minutes en cherchant ton prénom.', 'Ton avocat plaide avec conviction pendant vingt minutes.', 'Ton ténor du barreau fait pleurer la salle, et même le greffier.'][q.law];
+        return { kicker: minor ? 'TRIBUNAL POUR ENFANTS' : (cr.grave ? 'COUR D’ASSISES' : 'TRIBUNAL CORRECTIONNEL'), title: 'Le verdict', ink: 'r', text: 'Tu te présentes devant ' + (F ? 'la juge ' : 'le juge ') + '<b>' + L.esc(q.jg) + '</b>, ' + sev + '. ' + plea + (q.aveu ? ' Tu as avoué pendant l’interrogatoire.' : ''), opts: [{ id: 'ok', l: 'Se lever pour entendre le verdict' }] };
+      },
+      answer: function (q, id, l) {
+        const c = procCtx(q), cr = D.CRIMES[q.m] || D.CRIMES.violence;
+        if (q.s === 'garde') {
+          const law = Number(String(id).slice(1)) || 0, cost = [0, 2500, 15000][law];
+          if (cost && l.money < cost) return null;
+          l.money -= cost; q.law = law; q.s = 'interro'; q.lw = L.pick(LAWYERS);
+          const t = ['{lw} arrive en retard, une tache de café sur la cravate : « On va improviser. »', '{lw} arrive avec un épais dossier et te serre la main : « On va s’en sortir. »', '{lw} entre dans la pièce. Les policiers se redressent. L’enquêteur avale sa salive.'][law];
+          c.v.lw = '<b>' + L.esc(q.lw) + '</b>';
+          return { t: L.T(t, c), d: cost ? { m: -cost } : {}, title: 'Ton avocat' };
+        }
+        if (q.s === 'interro') {
+          const set = D.INTERRO[q.m] || D.INTERRO.violence, it = set[q.qs[q.i]];
+          const a = it.a[Number(String(id).slice(1))];
+          if (!a) return null;
+          q.pts += typeof a.d === 'function' ? a.d() : a.d;
+          if (a.aveu) q.aveu = 1;
+          q.i++;
+          if (q.i >= q.qs.length) q.s = 'verdict';
+          return { t: L.T(a.r, c), d: {}, title: 'L’enquêteur' };
+        }
+        // verdict
+        l.queue.shift();
+        const minor = l.me.age < 18;
+        let mult = 1 + q.pts - [0, 0.2, 0.4][q.law] + (l.casier ? 0.3 : 0) + { severe: 0.25, normal: 0, clement: -0.2 }[q.js] + L.rand(-0.1, 0.1);
+        mult = Math.max(0.2, mult);
+        const F = /^(Martine|Sylvie|Nadia|Catherine)/.test(q.jg);
+        c.v.j = (F ? 'La juge ' : 'Le juge ') + '<b>' + L.esc(q.jg) + '</b>';
+        c.v.cr = cr.n;
+        // relaxe si le dossier est mince et que tu n'as rien avoué
+        if (!q.aveu && q.ev < 0.65 && L.chance(clamp((0.65 - q.ev) * 1.3 + q.law * 0.08 - q.pts * 0.6, 0, 0.75))) {
+          G.ach('relaxe');
+          return G.say('{j} prononce ta <b>relaxe</b> pour {cr} : les preuves sont insuffisantes. Tu sors libre du tribunal, sous les yeux furieux de l’enquêteur.', { b: 8 }, c, 'good');
+        }
+        l.casier = 1;
+        if (!cr.y) {
+          const fine = Math.round(cr.fine * mult / 10) * 10;
+          return G.say('{j} te condamne pour {cr} : <b>' + L.money(fine) + ' d’amende</b>' + (mult > 1.3 ? ' et des travaux d’intérêt général' : '') + '. Ton casier judiciaire s’allonge.', { m: -fine, b: -5 }, c, 'bad');
+        }
+        let years = cr.y * mult * (minor ? 0.5 : 1);
+        if (years < 1) {
+          const months = Math.max(2, Math.round(years * 12));
+          return G.say('{j} te condamne pour {cr} à <b>' + months + ' mois de prison avec sursis</b>' + (cr.fine ? ' et ' + L.money(cr.fine) + ' d’amende' : '') + '. Au moindre écart, c’est la cellule.', { m: -(cr.fine || 0), b: -6 }, c, 'bad');
+        }
+        const perpet = years > 30 && !minor;
+        const n = perpet ? 99 : Math.max(1, Math.round(years));
+        G.jail(n, perpet);
+        const where = minor ? ' en établissement pour mineurs' : '';
+        return G.say(perpet ? '{j} te condamne pour {cr} à la <b>réclusion criminelle à perpétuité</b>. La salle retient son souffle.' : '{j} te condamne pour {cr} à <b>' + n + ' an' + (n > 1 ? 's' : '') + ' de prison ferme</b>' + where + '.', { b: -14, s: -8 }, c, 'bad');
+      }
+    },
+    // ---------- découverte d'un centre d'intérêt ----------
+    intev: {
+      view: function (q, l) {
+        const it = D.interest(q.id), e = D.INT_EV[q.id];
+        if (!it || !e) return null;
+        const c = G.ctx();
+        Object.keys(q.r || {}).forEach(function (k) { c.r[k] = G.byId(q.r[k]); });
+        const opts = l.ints.length < 2 ? [{ id: 'yes', l: 'Oui, c’est une révélation !', sub: 'Nouveau centre d’intérêt : ' + it.n }]
+          : l.ints.map(function (x) { const o = D.interest(x); return { id: 'r:' + x, l: 'Oui, à la place de : ' + o.n, sub: 'Tu abandonnes ' + o.n }; });
+        opts.push({ id: 'no', l: 'Non, pas pour moi', alt: 1 });
+        return { kicker: 'CENTRE D’INTÉRÊT', title: it.n, ink: 'c', text: L.T(e.t, c), q: L.T(e.q, c), opts: opts };
+      },
+      answer: function (q, id, l) {
+        const it = D.interest(q.id);
+        l.queue.shift();
+        if (!it || id === 'no') return G.say('Tu passes ton chemin. ' + (it ? it.n : 'Ce truc') + ', ce sera peut-être pour une autre fois.', null, null, '');
+        if (String(id).indexOf('r:') === 0) l.ints = l.ints.filter(function (x) { return x !== String(id).slice(2); });
+        if (l.ints.length >= 2 || l.ints.indexOf(it.id) >= 0) return null;
+        l.ints.push(it.id);
+        return G.say('Nouveau centre d’intérêt : <b>' + it.n + '</b> ! Tu en parles déjà à tout le monde.', { b: 3 }, null, 'good');
+      }
+    },
     ori: {
       view: function (q, l) {
         const pron = { M: 'il', F: 'elle', X: 'iel' }[l.me.sex] || 'il';
@@ -1133,8 +1324,8 @@
         const other = G.byId(ch.op);
         return {
           kicker: 'NAISSANCE · ' + l.year, title: ch.sex === 'F' ? 'C’est une fille !' : 'C’est un garçon !', ink: 'm', face: ch,
-          text: 'Bienvenue au monde ! ' + (other ? 'Avec ' + L.esc(other.first) + ', vous choisissez' : 'Tu choisis') + ' son prénom.',
-          input: { v: ch.first, sex: ch.sex, label: 'Prénom' },
+          text: 'Bienvenue au monde ! ' + (other ? 'Avec ' + L.esc(other.first) + ', vous choisissez' : 'Tu choisis') + ' son prénom.' + (L.M && L.M.babyName(l) ? ' Tu avais déjà une idée depuis longtemps…' : ''),
+          input: { v: (L.M && L.M.babyName(l)) || ch.first, sex: ch.sex, label: 'Prénom' },
           opts: [{ id: 'ok', l: 'Valider ce prénom' }]
         };
       },
@@ -1310,6 +1501,7 @@
     }
   };
 
+  G.Q = Q;
   // ---------- file d'attente (modales) ----------
   function runChecks(l, yearly) {
     if (l.dead) return;

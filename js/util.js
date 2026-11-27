@@ -3,7 +3,7 @@ window.LP = window.LP || {};
 (function (L) {
   'use strict';
 
-  L.VERSION = '0.3.0';
+  L.VERSION = '0.4.1';
   L.CREDIT = "un jeu d'Aze Le Onze";
 
   // ---------- hasard (remplaçable pour les tests) ----------
@@ -115,6 +115,7 @@ window.LP = window.LP || {};
     if (typeof s === 'function') s = s(c);
     if (!s) return '';
     c = c || {};
+    if (L.M && s.indexOf('{@') >= 0) s = L.M.expand(s, c); // tes propres phrases (mots.js)
     const me = c.me || { sex: 'M', first: '', last: '' };
     s = s.replace(/\[([^\[\]|]*)\|([^\[\]]*)\]/g, function (m, a, b) { return L.gx(a, b, me.sex); });
     s = s.replace(/\{([A-Za-z0-9]+)(?:\.([a-z]+))?(?::([^{}|]*)\|([^{}]*))?\}/g, function (m, key, prop, a, b) {

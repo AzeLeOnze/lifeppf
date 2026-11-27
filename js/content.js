@@ -131,7 +131,10 @@
     ['Le Cri du parpaing', 'horreur'], ['2084 : l’odyssée du wifi', 'sf'], ['Les Bronzés font du ski de fond', 'comedie'], ['Tonton Fusée', 'anim'],
     ['La Grande Vadrouille des moules', 'comedie'], ['Un été sans clim', 'drame'], ['La Ballade du lampadaire', 'auteur'], ['L’Homme qui murmurait à l’oreille des radiateurs', 'drame'],
     ['Turbo Mamies 3 : déambulateur drift', 'action'], ['Le Château des chaussons', 'anim'], ['Les Larmes du yaourt', 'drame'], ['Embrouille à Mulhouse', 'polar'],
-    ['La Valse des parapluies', 'musical'], ['Les Marmottes de l’apocalypse', 'horreur'], ['Tout le monde aime Bernard', 'comedie'], ['Le Mystère du placard', 'polar']
+    ['La Valse des parapluies', 'musical'], ['Les Marmottes de l’apocalypse', 'horreur'], ['Tout le monde aime Bernard', 'comedie'], ['Le Mystère du placard', 'polar'],
+    ['Super Débris spatial', 'sf'], ['Mon père, le papa', 'drame'], ['Riz : le retour de l’autocuiseur', 'action'], ['Aspirateur 5', 'horreur'],
+    ['Foufou & Fofolle', 'comedie'], ['Miroir blanc', 'sf'], ['Voilà, voilà', 'auteur'], ['L’Épopée de moi', 'auteur'],
+    ['Le Coiffeur de l’apocalypse', 'action'], ['Trois mariages et un parking', 'romance'], ['La Revanche des fougères', 'horreur'], ['Pingouins en CDD', 'anim']
   ].map(function (f) { return { t: f[0], g: f[1] }; });
 
   // ---------- jeux vidéo (il faut une console ou un PC gaming) ----------
@@ -159,7 +162,11 @@
     ['Pétanque galactique', 'sport'], ['Ninja fonctionnaire', 'combat'], ['Labyrinthe de chaussettes', 'puzzle'], ['Halloween au camping', 'horreur'],
     ['L’Odyssée du hamster', 'plateforme'], ['Karaoké Hero : édition Tonton', 'rythme'], ['Boulangerie Tycoon', 'simulation'], ['Le Dernier Pixel', 'aventure'],
     ['Le Tournoi des grands-mères', 'combat'], ['Planète Tracteur', 'simulation'], ['Le Fantôme du wifi', 'horreur'], ['Échecs & Mâts de cocagne', 'strategie'],
-    ['Rallye des brocantes', 'course'], ['Golf de bureau', 'sport'], ['Mots croisés de l’apocalypse', 'puzzle'], ['Le Royaume des radiateurs', 'strategie']
+    ['Rallye des brocantes', 'course'], ['Golf de bureau', 'sport'], ['Mots croisés de l’apocalypse', 'puzzle'], ['Le Royaume des radiateurs', 'strategie'],
+    ['Piou piou, je recharge', 'combat'], ['Prise Jack III', 'puzzle'], ['Kung-Fu groenlandais', 'combat'], ['Paris Simulator {an}', 'simulation'],
+    ['Plaque d’égout Simulator', 'simulation'], ['Simulation de simulation', 'simulation'], ['Super Salade & Pancakes', 'plateforme'],
+    ['Tracteur Royale', 'course'], ['Le Bal des fantômes timides', 'horreur'], ['Sudoku : édition cauchemar', 'puzzle'], ['La Guerre des chaussettes', 'strategie'],
+    ['Curling extrême', 'sport'], ['Les Ombres du lavomatic', 'aventure']
   ].map(function (g) { return { t: g[0], g: g[1] }; });
 
   // ---------- livres ----------
@@ -187,15 +194,20 @@
     ['Le Fantôme du CDI', 'horreur'], ['Les Robots aussi pleurent', 'sf'], ['Le Commissaire Maigrelet enquête', 'polar'], ['Brève histoire du fromage', 'histoire'],
     ['Réussir sa sieste en 10 leçons', 'devperso'], ['Le Petit Prince de Saint-Étienne', 'roman'], ['Les Sorcières du RER B', 'fantasy'], ['Les Recettes de mamie Ginette', 'cuisine'],
     ['Amour, gloire et barbecue', 'romance'], ['Journal d’un hamster', 'bd'], ['L’Art de ne rien faire', 'essai'], ['Le Labyrinthe des boulangers', 'aventure'],
-    ['Cent ans de pluie', 'roman'], ['La Nuit des taupes', 'horreur'], ['L’Elfe du rond-point', 'fantasy'], ['Mars, la planète qui boude', 'sf']
+    ['Cent ans de pluie', 'roman'], ['La Nuit des taupes', 'horreur'], ['L’Elfe du rond-point', 'fantasy'], ['Mars, la planète qui boude', 'sf'],
+    ['Couscous simple pour 2', 'cuisine'], ['La vie, voilà, c’est tout', 'essai'], ['Trilogie en 1 tome', 'fantasy'], ['L’Aventure d’un bilboquet', 'aventure'],
+    ['Le Tricot de l’extrême', 'devperso'], ['Les Mystères du rond-point', 'polar'], ['Lettres à mon frigo', 'poesie'], ['La Planète des chaussons', 'sf'], ['Le Cœur en promo', 'romance']
   ].map(function (b) { return { t: b[0], g: b[1] }; });
 
   // ---------- concerts et festivals ----------
   D.DJS = ['DJ-Fox', 'DJ-Anticyclonique', 'DJ-Poil', 'DJ-Hématome', 'DJ-Chromosome', 'DJ-Okay', 'DJ-Satourne', 'DJ-JupiTerre', 'DJ-x3D', 'DJ-UWU', 'DJ-Artichaud', 'DJ-Bolognaise',
-    'DJ-Brumisateur', 'DJ-Tartiflette', 'DJ-Cumulonimbus', 'DJ-Molécule', 'DJ-Pétanque', 'DJ-Gyrophare', 'DJ-Roquefort', 'DJ-Mammouth', 'DJ-Kiwi', 'DJ-Périphérique', 'DJ-Spaghetti', 'DJ-Néon', 'DJ-Pingouin', 'DJ-Clafoutis', 'DJ-Sismique', 'DJ-Cornichon'];
+    'DJ-Brumisateur', 'DJ-Tartiflette', 'DJ-Cumulonimbus', 'DJ-Molécule', 'DJ-Pétanque', 'DJ-Gyrophare', 'DJ-Roquefort', 'DJ-Mammouth', 'DJ-Kiwi', 'DJ-Périphérique', 'DJ-Spaghetti', 'DJ-Néon', 'DJ-Pingouin', 'DJ-Clafoutis', 'DJ-Sismique', 'DJ-Cornichon',
+    'DJ-Pastis', 'DJ-DJ', 'DJ-Phare', 'DJ-Chose', 'DJ-Y’apa', 'DJ-Wifi', 'DJ-Moustache', 'DJ-Escabeau', 'DJ-Brocante'];
   D.DJ_STYLES = ['techno', 'house', 'électro-swing', 'drum’n’bass', 'synthwave', 'hardstyle', 'lo-fi', 'disco', 'dubstep', 'trance', 'eurodance'];
   D.FESTS = ['Festival des Arbres', 'Festival du Soleil', 'Festival de la Lune', 'Festival Forestière', 'Festival Sauce Béchamel', 'Festival des Druides', 'Festival Voodoo', 'Festival Médiéval', 'Festival des Festivités', 'Festival du Coin de Table', 'Festival du Val',
-    'Festival des Nuages', 'Festival de la Marée Basse', 'Festival du Rond-Point', 'Festival Crème Brûlée', 'Festival des Lucioles', 'Festival du Grand Bazar', 'Festival des Volcans', 'Festival Mille Bougies', 'Festival du Pont-Levis', 'Festival Choucroute Cosmique', 'Festival des Mouettes', 'Festival du Dernier Métro'];
+    'Festival des Nuages', 'Festival de la Marée Basse', 'Festival du Rond-Point', 'Festival Crème Brûlée', 'Festival des Lucioles', 'Festival du Grand Bazar', 'Festival des Volcans', 'Festival Mille Bougies', 'Festival du Pont-Levis', 'Festival Choucroute Cosmique', 'Festival des Mouettes', 'Festival du Dernier Métro',
+    'Festival des Sergents-Chefs', 'Festival des Ennemis', 'Festival dans le noir', 'Festival sans musique', 'Festival de la Raclette', 'Festival des 3 dents de lait',
+    'Festival du Parking', 'Festival des Pantoufles', 'Festival de la Sieste', 'Festival des Voisins Bruyants'];
   D.FEST_STYLES = ['rock', 'électro', 'folk', 'métal', 'reggae', 'pop', 'rap', 'jazz', 'musiques du monde', 'chanson française'];
 
   // ---------- centres d'intérêt (2 au maximum) ----------
@@ -239,6 +251,46 @@
   ];
   D.interest = function (id) { return D.INTERESTS.find(function (x) { return x.id === id; }); };
 
+  // ---------- découverte d'un centre d'intérêt (chaque événement peut arriver 2 fois par vie) ----------
+  // a : âge minimum ; t : ce qui arrive ; q : la question posée au joueur
+  D.INT_EV = {
+    weeb: { a: 9, t: 'Un soir, {prenom} tombe sur le premier épisode d’un animé japonais. Douze épisodes plus tard, il fait jour.', q: 'Est-ce que {prenom} plonge dans la culture japonaise et les animés ?' },
+    otaku: { a: 10, t: 'Dans une boutique, {prenom} reste bloqué{e} une heure devant une vitrine de figurines et de mangas. Le vendeur finit par lui apporter une chaise.', q: 'Est-ce que {prenom} devient otaku ?' },
+    furry: { a: 12, t: 'Lors d’une convention, {prenom} croise une foule de gens en costumes d’animaux géants, tous plus gentils les uns que les autres. Un renard bleu lui offre un câlin.', q: 'Est-ce que {prenom} se crée un fursona et rejoint la communauté furry ?' },
+    airsoft: { a: 12, t: 'Un copain emmène {prenom} à une partie d’airsoft dans une forêt. Billes en plastique, stratégie, cris de guerre : {prenom} adore chaque seconde.', q: 'Est-ce que {prenom} se met à l’airsoft ?' },
+    auto: { a: 8, t: 'Une voiture de collection passe dans la rue en vrombissant. {prenom} reste [planté|plantée] sur le trottoir, le cœur à 6 000 tours par minute.', q: 'Est-ce que {prenom} devient [un passionné|une passionnée] d’automobiles ?' },
+    kpop: { a: 10, t: 'Une vidéo de K-pop passe à la télé : chorégraphie parfaite, refrains imparables. {prenom} la regarde 40 fois de suite.', q: 'Est-ce que {prenom} devient fan de K-pop ?' },
+    streaming: { a: 10, t: '{prenom} découvre un streamer qui joue en direct devant 20 000 personnes en parlant à son chat. Tu ne décroches plus de l’écran.', q: 'Est-ce que {prenom} se passionne pour le streaming ?' },
+    retro: { a: 8, t: 'Au grenier de {Gp.n}, {prenom} trouve une vieille console poussiéreuse. Elle marche encore. Les pixels, c’est magique.', q: 'Est-ce que {prenom} se lance dans les jeux rétro ?', need: 'gp' },
+    jdr: { a: 11, t: 'Un camarade invite {prenom} à une partie de jeu de rôle. Tu joues un nain barde. Ton personnage meurt dans un puits, et tu n’as jamais autant ri.', q: 'Est-ce que {prenom} devient [rôliste|rôliste] ?' },
+    cosplay: { a: 10, t: 'Lors d’une convention japonaise, {prenom} voit des gens porter des tenues incroyablement fidèles de héros et d’héroïnes d’animés. {prenom} tombe [follement amoureux|follement amoureuse] de cette sous-culture !', q: 'Est-ce que {prenom} développe un intérêt pour le cosplay ?' },
+    astro: { a: 7, t: 'Nuit d’été à la campagne : {prenom} voit pour la première fois la Voie lactée. Tu as l’impression d’être minuscule, et c’est merveilleux.', q: 'Est-ce que {prenom} se passionne pour l’astronomie ?' },
+    jardin: { a: 7, t: '{prenom} plante une graine de tomate dans un pot de yaourt. Trois semaines plus tard, une tomate. Tu te sens [tout-puissant|toute-puissante].', q: 'Est-ce que {prenom} attrape le virus du jardinage ?' },
+    rando: { a: 8, t: 'Randonnée en montagne avec la famille : {prenom} râle les deux premières heures, puis découvre la vue au sommet. Silence total.', q: 'Est-ce que {prenom} devient [un fou|une folle] de randonnée ?' },
+    skate: { a: 9, t: 'Au skatepark, une bande de jeunes enchaîne les figures. L’un d’eux prête sa planche à {prenom}. Chute, rire, recommence.', q: 'Est-ce que {prenom} se met au skate ?' },
+    photo: { a: 10, t: '{prenom} trouve un vieil appareil photo argentique dans une brocante. La première pellicule est floue. Elle est parfaite.', q: 'Est-ce que {prenom} se passionne pour la photographie ?' },
+    mode: { a: 11, t: 'En feuilletant un magazine, {prenom} découvre un défilé complètement fou : manteaux en papier bulle, chapeaux en forme de nuage. Révélation.', q: 'Est-ce que {prenom} s’intéresse à la mode ?' },
+    peche: { a: 7, t: '{Par} emmène {prenom} pêcher au lever du soleil. Brume, silence, une truite. Tu comprends enfin pourquoi les gens se lèvent à 5 h.', q: 'Est-ce que {prenom} devient [un pêcheur|une pêcheuse] [passionné|passionnée] ?', need: 'par' },
+    echecs: { a: 7, t: 'Dans un parc, un vieux monsieur bat {prenom} aux échecs en 4 coups. Puis t’explique comment. Tu veux ta revanche.', q: 'Est-ce que {prenom} se met sérieusement aux échecs ?' },
+    truecrime: { a: 13, t: '{prenom} écoute un podcast sur une affaire criminelle jamais résolue. À 3 h du matin, tu as un tableau rempli de fils rouges dans ta chambre.', q: 'Est-ce que {prenom} devient [accro|accro] au true crime ?' },
+    metal: { a: 11, t: 'Premier concert de métal : {prenom} se retrouve au milieu d’une foule qui saute, crie, et s’aide à se relever. Que du respect.', q: 'Est-ce que {prenom} devient [un métalleux|une métalleuse] ?' },
+    astrologie: { a: 11, t: 'Un horoscope décrit la semaine de {prenom} avec une précision troublante. Coïncidence ? Tu achètes un livre sur les signes.', q: 'Est-ce que {prenom} se passionne pour l’astrologie ?' },
+    ornitho: { a: 8, t: 'Une mésange se pose sur la fenêtre de {prenom} tous les matins à 7 h 12. Pile. Tu commences à noter ses horaires.', q: 'Est-ce que {prenom} devient [ornithologue amateur|ornithologue amatrice] ?' },
+    jds: { a: 6, t: 'Soirée jeux de société en famille : {prenom} gagne une partie de stratégie contre tous les adultes. Tu en parles pendant une semaine.', q: 'Est-ce que {prenom} devient fan de jeux de société ?' },
+    medieval: { a: 8, t: 'Visite d’un château fort : remparts, catapulte, banquet costumé. {prenom} refuse de repartir sans une épée en bois.', q: 'Est-ce que {prenom} se passionne pour le Moyen Âge ?' },
+    lego: { a: 6, t: '{prenom} reçoit une boîte de briques de construction. Une semaine plus tard, ta chambre est une ville de 400 habitants.', q: 'Est-ce que {prenom} se lance dans les Lego ?' },
+    gothique: { a: 12, t: '{prenom} découvre un groupe gothique en écoutant la radio la nuit. Velours noir, chandelles, poésie mélancolique : tout te parle.', q: 'Est-ce que {prenom} embrasse la culture gothique ?' },
+    punk: { a: 12, t: 'Un concert punk improvisé dans une cave : trois accords, beaucoup d’énergie, zéro règle. {prenom} ressort avec une épingle à nourrice à l’oreille.', q: 'Est-ce que {prenom} devient punk ?' },
+    sorcellerie: { a: 10, t: 'Dans une brocante, {prenom} trouve un vieux grimoire rempli de recettes de potions et de rituels de pleine lune. La couverture est tiède.', q: 'Est-ce que {prenom} s’initie à la sorcellerie ?' },
+    voyance: { a: 12, t: 'Une voyante de fête foraine prédit à {prenom} trois choses. Deux se réalisent dans la semaine. La troisième parlait d’un pigeon.', q: 'Est-ce que {prenom} s’intéresse à la voyance ?' },
+    peinture: { a: 6, t: '{prenom} renverse un pot de peinture sur une feuille. Le résultat est si beau que {Par.n} l’encadre dans le salon.', q: 'Est-ce que {prenom} se met à la peinture ?', need: 'par' },
+    cirque: { a: 6, t: 'Sous un chapiteau, {prenom} voit des acrobates voler, un jongleur à 7 balles et un clown triste. Tu rentres en essayant de faire la roue.', q: 'Est-ce que {prenom} se passionne pour le cirque ?' },
+    danse: { a: 6, t: 'À un mariage, {prenom} danse toute la nuit. Les adultes forment un cercle autour de toi. Tu es né{e} pour ça.', q: 'Est-ce que {prenom} se met à la danse ?' },
+    origami: { a: 7, t: 'Un livre sur l’origami traîne à la bibliothèque. Une feuille, trente plis, une grue. {prenom} n’en revient pas.', q: 'Est-ce que {prenom} se lance dans l’origami ?' },
+    rap: { a: 11, t: '{prenom} écrit un couplet sur son goûter et le rappe dans la cour de récré. Un attroupement se forme. Le goûter devient légendaire.', q: 'Est-ce que {prenom} se met au rap ?' }
+  };
+
+
   // ---------- éducation de tes enfants ----------
   D.EDU_STYLES = [
     { id: 'douce', n: 'Bienveillante', d: 'Écoute, câlins, règles expliquées.', tr: { bienveillant: 1.5, calme: 1 }, sk: { eloquence: 0.8 }, rq: 1 },
@@ -249,4 +301,139 @@
     { id: 'studieuse', n: 'Studieuse', d: 'Livres, musées, questions.', tr: { curieux: 1.6, ambitieux: 0.6 }, sk: { sciences: 1.2, langues: 1 }, rq: 0, g: 0.4 }
   ];
   D.eduStyle = function (id) { return D.EDU_STYLES.find(function (x) { return x.id === id; }) || D.EDU_STYLES[0]; };
+
+  // ---------- justice : délits, peines, interrogatoires ----------
+  // y : peine de base en années de prison (0 = amende) ; fine : amende de base ; grave : passe toujours devant un juge
+  D.CRIMES = {
+    vol: { n: 'vol à l’étalage', y: 0, fine: 400 },
+    graffiti: { n: 'dégradation (graffiti)', y: 0, fine: 600 },
+    bagarre: { n: 'rixe sur la voie publique', y: 0.6, fine: 900 },
+    violence: { n: 'violences volontaires', y: 1, fine: 1500 },
+    arme: { n: 'détention illégale d’arme à feu', y: 1.5, fine: 3000, grave: 1 },
+    tentative: { n: 'tentative de meurtre', y: 9, grave: 1 },
+    meurtre: { n: 'meurtre', y: 20, grave: 1 },
+    commandite: { n: 'assassinat commandité', y: 24, grave: 1 }
+  };
+  const isT = function (t) { return L.G.is(t); };
+  // chaque réponse : d = effet sur la peine (négatif = mieux), r = réaction, aveu = reconnaît les faits
+  D.INTERRO = {
+    meurtre: [
+      { q: 'Où étiez-vous la nuit de la mort de {y.n} ?', a: [
+        { l: '« Chez moi, devant un documentaire sur les loutres. »', d: function () { return isT('menteur') ? -0.3 : 0.15; }, r: 'L’enquêteur note ton alibi… et cherche quelle chaîne diffusait des loutres ce soir-là.' },
+        { l: '« Je ne dirai rien sans mon avocat. »', d: -0.1, r: 'Silence total. L’enquêteur fixe le plafond avec toi pendant une heure.' },
+        { l: '« D’accord… c’était moi. »', d: function () { return isT('honnete') ? -0.3 : -0.15; }, aveu: 1, r: 'Tes aveux sont signés. Ta franchise sera prise en compte par le juge.' }] },
+      { q: 'Pourquoi en vouliez-vous à {y.n} ?', a: [
+        { l: '« {Y:Il|Elle} m’avait volé ma dernière part de pizza en 2009. »', d: 0.4, r: 'L’enquêteur écrit « mobile : pizza » et le souligne deux fois.' },
+        { l: '« Je ne lui en voulais pas du tout ! »', d: function () { return isT('menteur') ? -0.2 : 0.2; }, r: 'L’enquêteur sort un carnet rempli de tes messages pas très gentils. Il hausse un sourcil.' },
+        { l: '« C’est compliqué… »', d: 0, r: 'L’enquêteur adore les histoires compliquées. Il a toute la nuit.' }] },
+      { q: 'Comment expliquez-vous vos empreintes sur les lieux ?', a: [
+        { l: '« Je touche beaucoup de choses. C’est un trait de caractère. »', d: 0.25, r: 'L’enquêteur ne rit pas. Le stylo, lui, tremble un peu.' },
+        { l: '« Quelqu’un a dû me piéger ! »', d: function () { return isT('colerique') ? 0.4 : 0.15; }, r: 'Tu tapes du poing sur la table. Ça ne t’aide pas.' },
+        { l: '« Pas de commentaire. »', d: -0.05, r: 'L’enquêteur coche une case. Tu ne sauras jamais laquelle.' }] },
+      { q: 'Avez-vous des remords ?', a: [
+        { l: '« Oui. Je pense à {y.n} toutes les nuits. »', d: -0.3, r: 'Un long silence. L’enquêteur referme doucement son dossier.' },
+        { l: '« Des remords ? Je ne connais pas ce mot. »', d: 0.5, r: 'L’enquêteur te tend un dictionnaire. Puis il appelle le juge.' },
+        { l: '« Je regrette surtout de m’être fait prendre. »', d: 0.35, r: 'Honnête. Mais très mal vu.' }] }
+    ],
+    commandite: [
+      { q: 'Connaissez-vous un certain « Le Fantôme » ?', a: [
+        { l: '« Jamais entendu parler. »', d: function () { return isT('menteur') ? -0.2 : 0.2; }, r: 'L’enquêteur pose sur la table une photo de vous deux en train de manger une crêpe.' },
+        { l: '« C’est un cousin. On joue à la pétanque. »', d: 0.3, r: '« À la pétanque. » L’enquêteur répète la phrase très lentement.' },
+        { l: '« Il m’a coûté 15 600 €, alors oui. »', d: -0.1, aveu: 1, r: 'La franchise désarçonne l’enquêteur. Les aveux sont enregistrés.' }] },
+      { q: 'À quoi correspond ce virement de 15 600 € ?', a: [
+        { l: '« Des cours de piano. Très intensifs. »', d: function () { return isT('menteur') ? -0.15 : 0.25; }, r: 'L’enquêteur te demande de jouer quelque chose. Il n’y a pas de piano.' },
+        { l: '« Un cadeau d’anniversaire. »', d: 0.2, r: '« Joyeux anniversaire », répond l’enquêteur, glacial.' },
+        { l: '« Je préfère me taire. »', d: -0.05, r: 'C’est ton droit. L’enquêteur le note.' }] },
+      { q: 'Le tueur vous a dénoncé. Une réaction ?', a: [
+        { l: '« Ce traître ! »', d: 0.4, aveu: 1, r: 'Tu viens d’avouer. L’enquêteur sourit pour la première fois de la journée.' },
+        { l: '« Je ne vois pas de qui vous parlez. »', d: 0, r: 'L’enquêteur soupire et commande un café.' },
+        { l: '« Je coopère : voici tout ce que je sais. »', d: -0.35, aveu: 1, r: 'Ta coopération est notée noir sur blanc. Ça comptera.' }] },
+      { q: 'Que ressentez-vous en apprenant la mort de {y.n} ?', a: [
+        { l: '« Une immense tristesse. »', d: function () { return isT('menteur') ? -0.1 : 0.1; }, r: 'Tes yeux restent secs. L’enquêteur le remarque.' },
+        { l: '« Du soulagement, je l’avoue. »', d: 0.35, r: 'L’enquêteur écrit vite, très vite.' },
+        { l: '« Je ne réalise pas encore. »', d: 0, r: 'L’enquêteur hoche la tête, neutre.' }] }
+    ],
+    tentative: [
+      { q: 'Vous avez agressé {y.n}. Pourquoi ?', a: [
+        { l: '« J’ai perdu le contrôle. Je le regrette. »', d: -0.25, aveu: 1, r: 'L’enquêteur note « regrets sincères ».' },
+        { l: '« {Y:Il|Elle} l’avait cherché. »', d: 0.4, r: 'Mauvaise réponse. Vraiment mauvaise.' },
+        { l: '« Agressé ? Je lui ai juste fait peur. »', d: 0.15, r: 'L’enquêteur montre le certificat médical. Long silence.' }] },
+      { q: 'Aviez-vous prémédité votre geste ?', a: [
+        { l: '« Non, c’est arrivé d’un coup. »', d: -0.1, r: 'L’enquêteur semble te croire. À moitié.' },
+        { l: '« J’avais un plan en 12 étapes. »', d: 0.5, r: 'L’enquêteur te demande de détailler les 12 étapes. Tu n’aurais pas dû.' },
+        { l: '« Je refuse de répondre. »', d: 0.05, r: 'Noté.' }] },
+      { q: 'Accepteriez-vous un suivi psychologique ?', a: [
+        { l: '« Oui, j’en ai besoin. »', d: -0.25, r: 'Le juge appréciera.' },
+        { l: '« C’est vous qui en avez besoin. »', d: 0.35, r: 'L’enquêteur ne trouve pas ça drôle.' },
+        { l: '« Seulement s’il y a des croissants. »', d: 0, r: 'L’enquêteur, malgré lui, note « croissants ».' }] }
+    ],
+    violence: [
+      { q: 'Pourquoi avez-vous frappé {y.n} ?', a: [
+        { l: '« {Y:Il|Elle} m’a provoqué{e}. »', d: 0.1, r: 'L’enquêteur demande comment. Tu ne t’en souviens plus.' },
+        { l: '« Je ne sais pas ce qui m’a pris. Je regrette. »', d: -0.25, aveu: 1, r: 'L’enquêteur note « remords ». C’est bon signe.' },
+        { l: '« {Y:Il|Elle} l’avait bien cherché. »', d: 0.4, r: 'L’enquêteur referme son stylo d’un geste sec.' }] },
+      { q: 'Êtes-vous souvent en colère ?', a: [
+        { l: '« JAMAIS ! »', d: function () { return isT('colerique') ? 0.4 : 0.1; }, r: 'Tu l’as crié si fort que la vitre a tremblé.' },
+        { l: '« Je fais de la méditation. »', d: function () { return isT('calme') ? -0.25 : 0.05; }, r: 'L’enquêteur te demande une démonstration. Tu fermes les yeux. Ça a l’air de marcher.' },
+        { l: '« Seulement le lundi. »', d: 0.1, r: 'Nous sommes lundi. L’enquêteur recule sa chaise.' }] },
+      { q: 'Accepteriez-vous un stage de gestion de la colère ?', a: [
+        { l: '« Oui, avec plaisir. »', d: -0.25, r: 'Le juge en tiendra compte.' },
+        { l: '« Seulement s’il y a des croissants. »', d: 0, r: 'Il y aura des croissants. Ils sont durs.' },
+        { l: '« C’est vous qui avez besoin d’un stage. »', d: 0.4, r: 'L’enquêteur respire profondément. Il a fait le stage, lui.' }] }
+    ],
+    bagarre: [
+      { q: 'Qui a commencé la bagarre ?', a: [
+        { l: '« {Y:Lui|Elle} ! »', d: 0, r: '« C’est ce qu’{y:il|elle} dit aussi », répond l’enquêteur.' },
+        { l: '« Moi, mais c’était un malentendu. »', d: -0.15, aveu: 1, r: 'L’enquêteur apprécie ta franchise.' },
+        { l: '« On s’en fiche, j’ai gagné. »', d: 0.35, r: 'Ce n’était pas la question.' }] },
+      { q: 'Aviez-vous bu ?', a: [
+        { l: '« Juste un jus de pomme. »', d: -0.05, r: 'L’éthylotest confirme. Jus de pomme.' },
+        { l: '« Un peu. Beaucoup. Passionnément. »', d: 0.2, r: 'L’enquêteur ne rit pas, mais il a failli.' },
+        { l: '« Je refuse de répondre. »', d: 0.1, r: 'Ça ressemble à un oui.' }] },
+      { q: 'Que voulez-vous dire à {y.n} ?', a: [
+        { l: '« Pardon. Sincèrement. »', d: -0.25, r: 'L’enquêteur transmettra.' },
+        { l: '« Revanche quand tu veux. »', d: 0.45, r: 'L’enquêteur transmettra aussi. Au juge.' },
+        { l: '« Rien. »', d: 0.1, r: 'Noté : « rien ».' }] }
+    ],
+    arme: [
+      { q: 'D’où vient cette arme ?', a: [
+        { l: '« Je l’ai trouvée. »', d: 0.2, r: '« Dans un parking, avec une notice ? » L’enquêteur n’y croit pas.' },
+        { l: '« D’un type louche sur un parking. »', d: function () { return isT('honnete') ? -0.15 : 0; }, aveu: 1, r: 'L’enquêteur prend des notes sur le type louche.' },
+        { l: '« C’est un pistolet à eau très réaliste. »', d: 0.3, r: 'L’expert balistique n’est pas d’accord.' }] },
+      { q: 'Pourquoi aviez-vous une arme ?', a: [
+        { l: '« Pour me défendre. »', d: -0.05, r: 'L’enquêteur te parle longuement de la police.' },
+        { l: '« Pour impressionner. »', d: 0.2, r: 'Tu impressionnes surtout le procureur.' },
+        { l: '« Pour la chasse aux moustiques. »', d: 0.3, r: 'L’enquêteur écrase un moustique avec son dossier. « Comme ça. »' }] },
+      { q: 'En avez-vous d’autres ?', a: [
+        { l: '« Non, juré. »', d: 0, r: 'La perquisition le confirme.' },
+        { l: '« Juste un lance-pierre. »', d: -0.05, r: 'Le lance-pierre est saisi aussi. Par principe.' },
+        { l: '« Ça dépend de ce que vous appelez une arme. »', d: 0.35, r: 'Mauvaise réponse.' }] }
+    ],
+    vol: [
+      { q: 'Pourquoi avoir volé ?', a: [
+        { l: '« J’avais faim. »', d: -0.15, r: 'L’enquêteur note « circonstances atténuantes ».' },
+        { l: '« Pour le frisson. »', d: 0.25, r: 'Le frisson te coûtera cher.' },
+        { l: '« Quel vol ? »', d: function () { return isT('menteur') ? -0.15 : 0.3; }, r: 'L’enquêteur lance la vidéo de surveillance.' }] },
+      { q: 'Comptez-vous recommencer ?', a: [
+        { l: '« Jamais. »', d: -0.15, r: 'L’enquêteur veut bien te croire. Une dernière fois.' },
+        { l: '« Peut-être pendant les soldes. »', d: 0.2, r: 'L’enquêteur souligne « soldes ».' },
+        { l: '« On verra. »', d: 0.15, r: 'Ça ne rassure personne.' }] },
+      { q: 'Pouvez-vous rembourser le magasin ?', a: [
+        { l: '« Oui, tout de suite. »', d: -0.2, r: 'Le magasin accepte. Le juge aussi, presque.' },
+        { l: '« Avec quel argent ? »', d: 0.1, r: 'Question légitime. Pas la bonne.' },
+        { l: '« Je vous fais un chèque… en chocolat. »', d: 0.25, r: 'Le chèque fond sur le bureau.' }] }
+    ],
+    graffiti: [
+      { q: 'Que représente ce graffiti ?', a: [
+        { l: '« Un message d’amour pour la ville. »', d: -0.1, r: 'L’enquêteur trouve ça presque beau.' },
+        { l: '« Le visage du maire en pigeon. »', d: 0.3, r: 'Le maire porte plainte. Le pigeon aussi.' },
+        { l: '« C’est de l’art, vous ne pouvez pas comprendre. »', d: 0.15, r: 'L’enquêteur a un diplôme d’histoire de l’art. Ambiance.' }] },
+      { q: 'Allez-vous nettoyer le mur ?', a: [
+        { l: '« Oui, à la brosse à dents s’il le faut. »', d: -0.25, r: 'Il le faudra.' },
+        { l: '« Il est plus beau comme ça. »', d: 0.25, r: 'Le propriétaire du mur n’est pas d’accord.' },
+        { l: '« Je le repeindrai en mieux. »', d: 0.1, r: 'Ce n’est pas ce qu’on te demande.' }] }
+    ]
+  };
+  D.JUGES = ['Martine Ferrand', 'Gérard Vasseur', 'Sylvie Moreau-Dulac', 'Jean-Paul Brochard', 'Nadia Belkacem', 'Hervé Pochon', 'Catherine Lemoine', 'Bernard Tissot'];
+
 })(window.LP);

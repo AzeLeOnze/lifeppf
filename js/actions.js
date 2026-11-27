@@ -137,7 +137,7 @@
       if ((p.rel === 'coll' || p.rel === 'boss') && l.job) {
         return R(t + ' Ton entreprise te licencie sur-le-champ.', fx, { k: 'bad', after: function () { G.loseJob('fired'); } });
       }
-      if (l.me.age >= 13 && L.chance(0.35)) return R(t + ' Quelqu’un appelle la police.', fx, { k: 'bad', after: function () { G.arrest(isPar(p) || p.rel === 'part' ? 2 : 1); } });
+      if (l.me.age >= 13 && L.chance(0.35)) return R(t + ' Quelqu’un appelle la police.', fx, { k: 'bad', after: function () { G.arrest(isPar(p) || p.rel === 'part' ? 2 : 1, 'violence', p); } });
       if (l.me.age < 13 && isPar(p)) t = 'Tu tapes {x} en pleine crise. Tu es [puni|punie] pour une durée indéterminée.';
       return R(t, fx, { k: 'bad' });
     }
@@ -394,7 +394,7 @@
       const cops = l.me.age >= 13 && L.chance(0.25);
       const fx = win ? { h: -3, b: 3, c: 1, rq: { x: -8 } } : { h: -8, b: -4, rq: { x: -5 } };
       fx.tr = { colerique: 2, rebelle: 1 };
-      return R((win ? 'Bagarre avec {x.n}. Tu gagnes, mais tu as mal partout.' : 'Bagarre avec {x.n}. Tu perds, et ton nez n’est pas content.') + (cops ? ' La police arrive.' : ''), fx, { k: 'bad', after: function () { if (cops) G.arrest(l.me.age >= 18 ? 2 : 1); } });
+      return R((win ? 'Bagarre avec {x.n}. Tu gagnes, mais tu as mal partout.' : 'Bagarre avec {x.n}. Tu perds, et ton nez n’est pas content.') + (cops ? ' La police arrive.' : ''), fx, { k: 'bad', after: function () { if (cops) G.arrest(l.me.age >= 18 ? 2 : 1, 'bagarre', p); } });
     }
   });
   // travail
@@ -481,24 +481,37 @@
       }
     });
   });
-  A.intsWhy = function () {
+  // ajouter dans une place libre : toujours possible ; enlever ou remplacer : une fois par an, effet immédiat
+  A.intsWhy = function (id) {
     const l = G.L();
     if (l.me.age < 6) return 'Dès 6 ans';
-    if (G.isDone('ints')) return 'Un changement par an';
+    if (id && l.ints.indexOf(id) < 0 && l.ints.length < 2) return '';
+    if (G.isDone('ints')) return 'Déjà changé cette année';
     return '';
   };
-  A.toggleInterest = function (id) {
+  A.toggleInterest = function (id, rep) {
     const l = G.L(), it = D.interest(id);
-    if (!it || A.intsWhy()) return null;
+    if (!it || A.intsWhy(id)) return null;
     const on = l.ints.indexOf(id) >= 0;
-    if (!on && l.ints.length >= 2) return null;
-    G.mark('ints');
-    if (on) l.ints = l.ints.filter(function (x) { return x !== id; });
-    else l.ints.push(id);
-    const o = G.say(on ? 'Tu passes à autre chose : ' + it.n + ', c’est fini.' : 'Nouveau centre d’intérêt : <b>' + it.n + '</b>. Tu en parles déjà à tout le monde.', on ? null : { b: 2 }, null, on ? '' : 'good');
+    let t;
+    if (on) { G.mark('ints'); l.ints = l.ints.filter(function (x) { return x !== id; }); t = 'Tu passes à autre chose : ' + it.n + ', c’est fini.'; }
+    else if (l.ints.length < 2) { l.ints.push(id); t = 'Nouveau centre d’intérêt : <b>' + it.n + '</b>. Tu en parles déjà à tout le monde.'; }
+    else {
+      if (l.ints.indexOf(rep) < 0) return null;
+      G.mark('ints');
+      l.ints = l.ints.filter(function (x) { return x !== rep; }).concat([id]);
+      t = 'Tu laisses tomber ' + D.interest(rep).n + ' pour une nouvelle passion : <b>' + it.n + '</b> !';
+    }
+    const o = G.say(t, on ? null : { b: 2 }, null, on ? '' : 'good');
     o.title = 'Centres d’intérêt';
     return o;
   };
+
+  def('p', {
+    id: 'lettre', n: 'Écrire une lettre', d: 'Depuis ta cellule', who: W(['fam', 'enf', 'part', 'ami']), prison: 1, lone: 1,
+    show: function () { return G.L().prison > 0; },
+    run: function () { return R(L.pick(['Tu écris une longue lettre à {x}. {X.il} te répond, et glisse un dessin dans l’enveloppe.', 'Lettre à {x} : tu racontes la cantine, les codétenus, tes regrets. {X.il} la relit trois fois.']), { b: 3, rq: { x: L.ri(5, 9) } }, { k: 'good' }); }
+  });
 
   // ---------- actions de famille / sociales (globales) ----------
   const REUNION = ['Tonton Gérard refait sa blague sur les impôts. Tout le monde rit par politesse.', 'Mamie ressort l’album photo de ta naissance. Tout le monde te voit [tout nu|toute nue] sur une peau de mouton.', 'Le chien de la famille vole le rôti. Ovation générale.', 'Partie de Trivial Pursuit : ton cousin triche, tout le monde le sait.', 'Quelqu’un a ramené un gâteau « sans sucre ». Personne n’y touche.'];
@@ -603,13 +616,18 @@
   });
   // cinéma : trois films à l'affiche, le genre choisi forge le caractère, et on adore… ou pas
   A.cine = [];
+  // une de tes créations a des chances de se retrouver à l'affiche
+  function withMine(pool, slot, genres) {
+    const own = L.M ? L.M.mine(slot).filter(function (f) { return !genres || genres[f.g]; }) : [];
+    return own.length && L.chance(0.45) ? [L.pick(own)].concat(pool) : pool;
+  }
   A.cineOffers = function () {
-    const pool = L.shuffle(D.FILMS.slice()), out = [], gs = {};
+    const pool = withMine(L.shuffle(D.FILMS.slice()), 'film', D.GENRES), out = [], gs = {};
     for (let i = 0; i < pool.length && out.length < 3; i++) {
       const f = pool[i];
       if (gs[f.g]) continue;
       gs[f.g] = 1;
-      out.push({ t: f.t + (!/\d$/.test(f.t) && L.chance(0.15) ? ' ' + L.ri(2, 5) : ''), g: f.g, dur: L.ri(78, 172), st: L.ri(1, 5) });
+      out.push({ t: f.mine ? f.t : f.t + (!/\d$/.test(f.t) && L.chance(0.15) ? ' ' + L.ri(2, 5) : ''), g: f.g, dur: L.ri(78, 172), st: L.ri(1, 5), mine: f.mine });
     }
     A.cine = out;
     return out;
@@ -635,6 +653,7 @@
     const tr = tier(pr);
     c.v.t = L.esc(f.t);
     let t = f.g === 'horreur' && a < 12 && tr === 'bad' ? 'Après « {t} », {prenom} dort avec la lumière allumée pendant une semaine.' : L.pick(CINE_T[tr]);
+    if (f.mine) t = 'Ton idée est devenue réalité : le film porte le titre que tu avais inventé ! ' + t;
     const fx = { b: { fan: 5, ok: 3, meh: 1, bad: -1 }[tr] };
     if (tr === 'fan' || tr === 'ok') {
       fx.tr = {}; fx.tr[g.tr] = tr === 'fan' ? 2 : 1;
@@ -670,11 +689,15 @@
   A.fest = [];
   A.festOffers = function () {
     const djs = L.shuffle(D.DJS.slice()), fests = L.shuffle(D.FESTS.slice());
+    const myDj = L.M ? L.M.mine('dj') : [], myFest = L.M ? L.M.mine('fest') : [];
     const nDj = L.ri(1, 2), out = [];
     for (let i = 0; i < 3; i++) {
       if (i < nDj) out.push({ kind: 'dj', n: djs[i], st: L.pick(D.DJ_STYLES), cost: L.ri(7, 12) * 5 });
       else out.push({ kind: 'fest', n: fests[i], st: L.pick(D.FEST_STYLES), cost: L.ri(14, 32) * 5, line: [djs[5 + i], djs[9 + i]] });
     }
+    // tes DJ et tes festivals passent parfois en ville
+    if (myDj.length && L.chance(0.45)) { const m = L.pick(myDj); out[0] = { kind: 'dj', n: m.t, st: m.g || L.pick(D.DJ_STYLES), cost: L.ri(7, 12) * 5, mine: 1 }; }
+    if (myFest.length && L.chance(0.45)) { const m = L.pick(myFest); out[2] = { kind: 'fest', n: m.t, st: m.g || L.pick(D.FEST_STYLES), cost: L.ri(14, 32) * 5, line: [djs[6], djs[10]], mine: 1 }; }
     A.fest = L.shuffle(out);
     return A.fest;
   };
@@ -696,6 +719,7 @@
     c.v.de = f.kind === 'dj' ? 'de ' + c.v.n : 'du ' + c.v.n;
     c.v.au = f.kind === 'dj' ? 'au concert de ' + c.v.n : 'au ' + c.v.n;
     let t = L.pick(FEST_T[tr]);
+    if (f.mine) t = 'Ton idée est devenue réalité : ' + (f.kind === 'dj' ? 'le DJ' : 'le festival') + ' porte le nom que tu avais inventé ! ' + t;
     const fx = { s: { fan: 5, ok: 4, meh: 2, bad: 1 }[tr], b: { fan: 6, ok: 4, meh: 1, bad: -2 }[tr], h: -1, sk: { musique: 1 }, acts: 1 };
     let after = null;
     if (tr !== 'bad' && L.chance(0.12)) { const q = G.tmp(a < 18 ? 'peer' : 'adult'); c.r.y = q; t += ' Dans la foule, tu sympathises avec {y.n}.'; after = function () { G.keep(q, 'ami', L.ri(40, 55)); }; }
@@ -766,9 +790,10 @@
   });
   // loisirs
   // jeux vidéo et livres : même principe que le cinéma (3 choix, un genre qui forge le caractère, un verdict)
-  function mediaOffers(pool) {
-    const p = L.shuffle(pool.slice()), out = [], gs = {};
-    for (let i = 0; i < p.length && out.length < 3; i++) { if (gs[p[i].g]) continue; gs[p[i].g] = 1; out.push(Object.assign({ st: L.ri(1, 5), n: L.ri(1, 4) }, p[i])); }
+  function mediaOffers(pool, slot, genres) {
+    const p = withMine(L.shuffle(pool.slice()), slot, genres), out = [], gs = {};
+    for (let i = 0; i < p.length && out.length < 3; i++) { if (gs[p[i].g]) continue; gs[p[i].g] = 1; const f = Object.assign({ st: L.ri(1, 5), n: L.ri(1, 4) }, p[i]); f.t = f.t.replace('{an}', String(G.L().year)); out.push(f); }
+
     return out;
   }
   function mediaRun(c, f, genres, texts, adj, base, title) {
@@ -781,6 +806,7 @@
     const tr = tier(clamp(pr, 0.08, 0.92));
     c.v.t = L.esc(f.t);
     let t = g.kid && a < 12 && tr === 'bad' ? texts.kid : L.pick(texts[tr]);
+    if (f.mine) t = 'Ton idée est devenue réalité : il porte le titre que tu avais inventé ! ' + t;
     const fx = Object.assign({ b: { fan: 5, ok: 3, meh: 1, bad: -1 }[tr] }, base);
     if (tr === 'fan' || tr === 'ok') {
       fx.tr = {}; fx.tr[g.tr] = tr === 'fan' ? 2 : 1;
@@ -790,7 +816,7 @@
     return R(t, fx, { k: tr === 'fan' ? 'good' : tr === 'bad' ? 'bad' : '', title: title + ' · ' + g.n, tier: tr });
   }
   A.jeux = [];
-  A.jvOffers = function () { A.jeux = mediaOffers(D.VGAMES); return A.jeux; };
+  A.jvOffers = function () { A.jeux = mediaOffers(D.VGAMES, 'jeu', D.VG_GENRES); return A.jeux; };
   const JV_T = {
     fan: ['{prenom} devient accro à « {t} » : jeu terminé à 100 %, trophées compris !', 'Coup de cœur pour « {t} ». {prenom} en rêve la nuit et fredonne la musique du menu.'],
     ok: ['Bonne partie de « {t} ». {prenom} lâche la manette avec le sourire.', '« {t} » : sympa ! {prenom} débloque deux niveaux et un chapeau rigolo.'],
@@ -805,7 +831,8 @@
     run: function (c, p, i) { return mediaRun(c, A.jeux[i], D.VG_GENRES, JV_T, function (f, l) { return l.sk.info / 300 + (f.g === 'sport' ? l.sk.sport / 400 : 0); }, { sk: { info: 1 } }, 'Jeu vidéo'); }
   });
   A.livres = [];
-  A.bookOffers = function () { A.livres = mediaOffers(D.BOOKS).map(function (b) { b.pages = L.ri(9, 64) * 10; return b; }); return A.livres; };
+  A.bookOffers = function () { A.livres = mediaOffers(D.BOOKS, 'livre', D.BOOK_GENRES).map(function (b) { b.pages = L.ri(9, 64) * 10; return b; }); return A.livres; };
+
   const BOOK_T = {
     fan: ['{prenom} dévore « {t} » en une nuit et devient [fan|fan] de l’auteur.', '« {t} » bouleverse {prenom}. Le livre reste sur la table de chevet pendant des mois.'],
     ok: ['{prenom} a bien aimé « {t} ». Quelques pages cornées et de belles phrases soulignées.', 'Bonne lecture : « {t} » se lit tout seul.'],
@@ -921,14 +948,109 @@
       c.v.o = L.pick(LOOT);
       const caught = L.chance(G.is('menteur') ? 0.2 : 0.32);
       if (!caught) return R('Tu voles {o}. Ton cœur bat à 200. Personne n’a rien vu.', { b: 2, tr: { rebelle: 2, menteur: 1 } });
-      return R('Tu essaies de voler {o}. Le vigile t’attrape par la capuche.', { b: -3, tr: { rebelle: 2 } }, { k: 'bad', after: function () { G.arrest(1); } });
+      return R('Tu essaies de voler {o}. Le vigile t’attrape par la capuche.', { b: -3, tr: { rebelle: 2 } }, { k: 'bad', after: function () { G.arrest(1, 'vol'); } });
     }
   });
   def('self', {
     id: 'graffiti', cat: 'risque', n: 'Faire un graffiti', age: 11,
     run: function () {
-      if (L.chance(0.25)) return R('Tu tagues un mur… juste devant une patrouille.', { tr: { rebelle: 2 }, sk: { art: 1 } }, { k: 'bad', after: function () { G.arrest(1); } });
+      if (L.chance(0.25)) return R('Tu tagues un mur… juste devant une patrouille.', { tr: { rebelle: 2 }, sk: { art: 1 } }, { k: 'bad', after: function () { G.arrest(1, 'graffiti'); } });
       return R('Tu peins une fresque géante sur un mur abandonné. Le quartier l’adore.', { b: 3, c: 1, sk: { art: 3 }, tr: { rebelle: 1, creatif: 2 } }, { k: 'good' });
+    }
+  });
+
+  // crimes : la police n'est jamais loin
+  const vicRef = function (y) { return y.tmp ? { tmp: { first: y.first, last: y.last, sex: y.sex, age: y.age } } : { id: y.id }; };
+  const guilt = function () { return G.is('egoiste') || G.is('colerique') ? -4 : -12; };
+  function targets(stranger) {
+    return function () {
+      const o = G.alive().filter(function (q) { return q.rel !== 'pet' && q.rel !== 'gone' && q.rel !== 'old'; }).slice(0, 40)
+        .map(function (q) { return { v: q.id, l: q.first + ' ' + q.last, sub: L.relName(q) + ' · ' + q.age + ' ans' }; });
+      if (stranger) o.unshift({ v: 'x', l: 'Un parfait inconnu', sub: 'Quelqu’un hors de ton entourage' });
+      return o;
+    };
+  }
+  def('self', {
+    id: 'meurtre', cat: 'risque', n: 'Commettre un meurtre', d: 'Choisis qui · risque de police élevé', age: 16,
+    pick: targets(true),
+    run: function (c, p, v) {
+      const l = G.L(), known = v !== 'x';
+      const y = known ? G.byId(Number(v)) : G.tmp('adult');
+      if (!y || !y.alive) return null;
+      c.r.y = y;
+      const fam = known && ['mere', 'pere', 'par', 'sib', 'gp', 'enf', 'part'].indexOf(y.rel) >= 0;
+      if (!L.chance(clamp(0.62 + (l.gun ? 0.2 : 0) + l.sk.sport / 400, 0.3, 0.92))) {
+        const caught = L.chance(0.85);
+        return R('Tu passes à l’acte contre {y}… et tu échoues. {Y.il} s’enfuit en hurlant et donne ton signalement à la police.', { b: -6, tr: { colerique: 3 } }, { k: 'bad', title: 'Tentative ratée', after: function () { if (known) G.keep(y, 'enn', 0); if (caught) G.arrest(3, 'tentative', y); else l.cold.push({ m: 'tentative', vic: vicRef(y), vn: y.first, y: l.year, p: 0.15 }); } });
+      }
+      let pc = known ? (fam ? 0.8 : 0.65) : 0.4;
+      if (G.is('menteur')) pc -= 0.08;
+      if (G.is('calme')) pc -= 0.05;
+      if (l.gun) pc += 0.05;
+      const caught = L.chance(clamp(pc, 0.1, 0.95));
+      return R('Tu passes à l’acte. {y.n} ne verra pas la fin de l’année.' + (caught ? ' Les sirènes arrivent presque aussitôt.' : ' Personne ne t’a vu. Pour l’instant.'), { b: guilt(), tr: { colerique: 3, menteur: 1 } }, { k: 'bad', title: 'Meurtre', after: function () { G.kill(y); if (caught) G.arrest(3, 'meurtre', y); else l.cold.push({ m: 'meurtre', vic: vicRef(y), vn: y.first, y: l.year, p: known ? 0.14 : 0.08 }); } });
+    }
+  });
+  def('self', {
+    id: 'tueur', cat: 'risque', n: 'Payer un tueur à gages', d: 'Risque de police moindre', age: 18, cost: 15600,
+    pick: targets(false),
+    run: function (c, p, v) {
+      const l = G.L(), y = G.byId(Number(v));
+      if (!y || !y.alive) return null;
+      c.r.y = y;
+      if (L.chance(0.1)) return R('Le tueur à gages encaisse les 15 600 € et disparaît. Difficile de porter plainte.', { b: -6 }, { k: 'bad', title: 'Arnaque' });
+      if (!L.chance(0.85)) return R('Le tueur se trompe d’adresse et terrorise une boîte aux lettres. {Y.n} ne se doute de rien. L’argent, lui, est parti.', { b: -4 }, { k: 'bad', title: 'Contrat raté' });
+      const caught = L.chance(0.22);
+      return R('Un coup de fil, une enveloppe, un message codé : {y.n} disparaît de ta vie.' + (caught ? ' Mais le tueur se fait arrêter… et il parle.' : ' Le tueur, lui, s’évapore.'), { b: guilt(), tr: { menteur: 2 } }, { k: 'bad', title: 'Contrat', after: function () { G.kill(y); if (caught) G.arrest(3, 'commandite', y); else l.cold.push({ m: 'commandite', vic: vicRef(y), vn: y.first, y: l.year, p: 0.07 }); } });
+    }
+  });
+  def('self', {
+    id: 'arme', cat: 'risque', n: 'Acheter une arme à feu', d: 'Illégal · aide pour un « mauvais coup »', age: 18, cost: 1400,
+    show: function () { return !G.L().gun; },
+    run: function () {
+      const l = G.L();
+      if (L.chance(0.12)) return R('Sur un parking, un type louche te tend un paquet… puis sort une carte de police. C’était un agent infiltré.', { b: -5 }, { k: 'bad', after: function () { G.arrest(2, 'arme'); } });
+      return R('Sur un parking, un type louche te vend un pistolet emballé dans un vieux journal. Tu le caches au fond d’un placard.', { b: -1, tr: { rebelle: 2 } }, { k: 'bad', after: function () { l.gun = l.year; } });
+    }
+  });
+  def('self', {
+    id: 'jeterArme', cat: 'risque', n: 'Te débarrasser de ton arme', d: 'Plus de risque au prochain contrôle', age: 18, free: 1,
+    show: function () { return !!G.L().gun; },
+    run: function () { return R('Tu jettes ton arme dans le fleuve, de nuit. Un canard te regarde, l’air de dire « Je n’ai rien vu ».', { b: 2 }, { after: function () { G.L().gun = 0; } }); }
+  });
+  // la vie en prison
+  const inPrison = function () { return G.L().prison > 0; };
+  def('self', {
+    id: 'conduite', cat: 'prison', n: 'Bonne conduite', d: 'Peut réduire ta peine', prison: 1, lone: 1, show: inPrison,
+    run: function () {
+      const l = G.L();
+      l.pc = (l.pc || 0) + 1;
+      if (!l.perpet && l.prison > 1 && l.pc >= 2 && L.chance(0.35)) return R('Remise de peine : ta bonne conduite te vaut <b>un an de moins</b> !', { b: 6 }, { k: 'good', after: function () { l.prison--; } });
+      return R(L.pick(['Tu fais ton lit au carré et tu dis bonjour à chaque gardien. Ça finira par se voir.', 'Tu aides un codétenu à écrire une lettre à sa mère. Le directeur l’a remarqué.', 'Pas une seule histoire cette année. Ton dossier commence à briller.']), { b: 1, tr: { discipline: 1 } });
+    }
+  });
+  def('self', { id: 'pmuscu', cat: 'prison', n: 'Musculation dans la cour', prison: 1, lone: 1, show: inPrison, run: function () { return R('Pompes, tractions, haltères en bidons de lessive. Tu sors de la cour avec des biceps et un surnom.', { h: 3, sk: { sport: 3 } }); } });
+  def('self', { id: 'patelier', cat: 'prison', n: 'Travailler à l’atelier', d: 'Un petit pécule', prison: 1, lone: 1, show: inPrison, run: function () { return R('Tu assembles des stylos à l’atelier toute l’année. Pécule : 300 €. Et un vrai talent pour les stylos.', { m: 300, sk: { bricolage: 3 } }); } });
+  def('self', { id: 'pbibli', cat: 'prison', n: 'Bibliothèque de la prison', prison: 1, lone: 1, show: inPrison, run: function () { return R(L.pick(['Tu lis tous les romans de la bibliothèque de la prison. Il y en a 43. Tu les relis.', 'Tu prépares un diplôme par correspondance entre deux promenades. Le gardien te fait réciter.']), { b: 2, sk: { langues: 2, eloquence: 2 } }); } });
+  def('self', {
+    id: 'evasion', cat: 'prison', n: 'Tenter de t’évader', d: 'Très risqué', prison: 1, show: inPrison,
+    run: function () {
+      const l = G.L();
+      if (L.chance(clamp(0.1 + l.sk.sport / 500 + (G.is('rebelle') ? 0.04 : 0), 0.05, 0.3))) return R('Draps noués, mur escaladé, bus de nuit : tu es dehors ! Mais désormais, tu es en cavale.', { b: 10 }, { k: 'big', title: 'Évasion', after: function () { l.fugitif = l.perpet ? 25 : l.prison; l.prison = 0; l.perpet = 0; G.ach('evade'); } });
+      return R('Les projecteurs s’allument au moment où tu touches le haut du mur. Peine allongée de deux ans.', { b: -6 }, { k: 'bad', after: function () { if (!l.perpet) l.prison += 2; } });
+    }
+  });
+  def('self', {
+    id: 'appel', cat: 'prison', n: 'Faire appel', d: 'Une fois par condamnation · quitte ou double', prison: 1, show: inPrison,
+    if: function () { return G.L().appel ? 'Déjà fait' : true; },
+    run: function () {
+      const l = G.L(), r = L.r();
+      if (r < 0.35) {
+        const n = l.perpet ? 20 : Math.max(1, Math.round(l.prison * L.rand(0.45, 0.7)));
+        return R('La cour d’appel réduit ta peine : il ne te reste plus que <b>' + n + ' an' + (n > 1 ? 's' : '') + '</b>.', { b: 8 }, { k: 'good', after: function () { l.appel = 1; l.prison = n; l.perpet = 0; } });
+      }
+      if (r < 0.55 && !l.perpet) return R('Mauvaise pioche : la cour d’appel alourdit ta peine. Ton avocat évite ton regard.', { b: -6 }, { k: 'bad', after: function () { l.appel = 1; l.prison = Math.ceil(l.prison * 1.25); } });
+      return R('La cour d’appel confirme ta peine. Rien ne change, à part ton moral.', { b: -2 }, { after: function () { l.appel = 1; } });
     }
   });
 

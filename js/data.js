@@ -467,7 +467,12 @@
     { id: 'pigeon', n: 'Ennemi juré des pigeons', d: 'Te faire voler trois fois par des pigeons.', xp: 30 },
     { id: 'dynastie', n: 'Dynastie', d: 'Jouer la 3e génération d’une même famille.', xp: 100 },
     { id: 'animaux', n: 'Arche de Noé', d: 'Avoir 3 animaux en même temps.', xp: 30 },
-    { id: 'mars', n: 'Martien·ne', d: 'Partir sur Mars.', xp: 150 }
+    { id: 'mars', n: 'Martien·ne', d: 'Partir sur Mars.', xp: 150 },
+    { id: 'relaxe', n: 'Innocent·e (officiellement)', d: 'Être relaxé·e au tribunal.', xp: 60 },
+    { id: 'perpet', n: 'Pour toujours', d: 'Être condamné·e à perpétuité.', xp: 80 },
+    { id: 'evade', n: 'La grande évasion', d: 'S’évader de prison.', xp: 90 },
+    { id: 'reve', n: 'Rêve accompli', d: 'Réaliser le rêve que tu as écrit.', xp: 120 },
+    { id: 'moulin', n: 'Moulin à paroles', d: 'Écrire 10 de tes propres phrases dans une vie.', xp: 50 }
   ];
   D.ach = function (id) { return D.ACH.find(function (a) { return a.id === id; }); };
 

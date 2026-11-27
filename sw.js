@@ -1,5 +1,5 @@
-// LifePPF 0.3.0 : cache hors ligne. Fabrication 20261126-051654 (change à chaque fois, pour que les mises à jour arrivent).
-const VERSION = 'lifeppf-20261126-051654';
+// LifePPF 0.4.1 : cache hors ligne. Fabrication 20261127-035816 (change à chaque fois, pour que les mises à jour arrivent).
+const VERSION = 'lifeppf-20261127-035816';
 const FONTS = 'lifeppf-fonts';
 const SHELL = [
   './',
@@ -9,19 +9,20 @@ const SHELL = [
   './icons/icon-512.png?v=1',
   './icons/icon-maskable-512.png?v=1',
   './icons/apple-touch-icon.png?v=1',
-  './js/util.js?v=0.3.0',
-  './js/data.js?v=0.3.0',
-  './js/content.js?v=0.3.0',
-  './js/game.js?v=0.3.0',
-  './js/actions.js?v=0.3.0',
-  './js/events.js?v=0.3.0',
-  './js/qte.js?v=0.3.0',
-  './art/perso/manifest.js?v=0.3.0',
-  './js/portrait.js?v=0.3.0',
-  './js/audio.js?v=0.3.0',
-  './js/ui.js?v=0.3.0',
-  './js/sync.js?v=0.3.0',
-  './js/main.js?v=0.3.0'
+  './js/util.js?v=0.4.1',
+  './js/data.js?v=0.4.1',
+  './js/content.js?v=0.4.1',
+  './js/game.js?v=0.4.1',
+  './js/mots.js?v=0.4.1',
+  './js/actions.js?v=0.4.1',
+  './js/events.js?v=0.4.1',
+  './js/qte.js?v=0.4.1',
+  './art/perso/manifest.js?v=0.4.1',
+  './js/portrait.js?v=0.4.1',
+  './js/audio.js?v=0.4.1',
+  './js/ui.js?v=0.4.1',
+  './js/sync.js?v=0.4.1',
+  './js/main.js?v=0.4.1'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

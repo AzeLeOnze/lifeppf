@@ -1,8 +1,22 @@
 # LifePPF — notes de version
 
+## 0.4.1 — 27 novembre 2026
+- **Tes créations** : invente tes propres films, jeux vidéo, livres, DJ et festivals (avec leur genre ou leur style), dans « Mes phrases » ou quand le jeu te pose la question. Ils sortent ensuite au cinéma, dans ta ludothèque, en librairie, en concert ou en festival (marqués « ★ Ton idée »), et reviennent dans ta vie : un studio sort ton film, ton DJ mixe au mariage de ta sœur…
+- **Compétences** : la barre ne change plus de longueur quand le bouton passe à « Fait », et le gain de l'entraînement s'affiche en magenta.
+- **Téléphone** : la barre du bas (Moi, Proches, Carrière, Biens, +1 an) reste visible quand un panneau est ouvert ; les onglets ne sont plus répétés en haut.
+
+## 0.4.0 — 27 novembre 2026
+- **Tes mots** : au fil de ta vie, tes proches te posent des questions et tu écris toi-même la réponse : ton rêve le plus cher, ton plat préféré, ta plus grande peur, le nom de ton doudou, un mot inventé, ton animal totem, ton surnom, ton expression fétiche, ce que tu détestes, ta chanson, ton talent caché, le prénom de ton futur enfant, ta devise, l'endroit où tu rêves de vivre, ta collection, ton juron, ton secret honteux (17 sujets, 19 questions). Le jeu accorde tes phrases en français (le, la, l', du, de la, des, au, aux, d'…) avec un aperçu en direct, puis les fait revenir dans plus de 70 moments de ta vie : ta sœur qui avoue qu'elle aussi voulait « être une licorne qui fait du karaoké », ton patron qui adopte ton expression fétiche, le premier mot de ton bébé, ta devise gravée sur l'avis de décès… Plusieurs phrases par sujet, toutes modifiables dans « Mes phrases » (menu ou onglet Moi).
+- **Justice** : garde à vue, choix de l'avocat (commis d'office, expérimenté, ténor du barreau), interrogatoire de trois questions adapté au délit où les mauvaises réponses alourdissent la peine, juge sévère ou clément, verdict (relaxe, amende, sursis, prison, perpétuité). Les affaires non élucidées peuvent te rattraper pendant 8 ans.
+- **Prison** : bonne conduite (remises de peine), musculation, atelier, bibliothèque, lettres à tes proches, appel (quitte ou double), évasion puis cavale.
+- **Nouvelles tentations** : commettre un meurtre (un proche ou un inconnu), payer un tueur à gages (15 600 €), acheter une arme à feu.
+- **Centres d'intérêt** : remplir une place libre à tout moment, remplacer ou enlever une fois par an avec effet immédiat. 34 événements de découverte (chacun 2 fois par vie au plus) qui te proposent une nouvelle passion.
+- **Nouveaux titres** : 13 jeux vidéo (dont « Paris Simulator » à l'année en cours), 12 films, 9 livres, 9 DJ et 10 festivals.
+- Le numéro d'aide en fin de partie et la mention « +3,5 % par niveau » sont retirés.
+
 ## 0.3.0 — 26 novembre 2026
-- **Portraits dessinés à la main** : le jeu assemble les dessins de l'auteur (calques visage, yeux, sourcils, nez, bouche, barbe, rides, cheveux, cou, vêtements), teinte la peau et les cheveux selon la génétique, choisit la bouche selon l'humeur et blanchit les cheveux avec l'âge. Les traits du visage (forme, yeux, nez, sourcils, bouche) se transmettent des parents aux enfants. Encore expérimental : désactivé par défaut, réservé aux 12 ans et plus.
-- **Atelier dev** (taper 5 fois sur le numéro de version, puis menu → Atelier dev) : composer un portrait pièce par pièce, changer peau, cheveux, humeur, âge, barbe ; générer une famille ou une foule ; voir l'inventaire des dessins ; activer les portraits dessinés dans la partie ; petites triches de test.
+- **Portraits dessinés à la main** : le jeu assemble les dessins de l'auteur (calques visage, yeux, sourcils, nez, bouche, barbe, rides, cheveux, cou, vêtements), teinte la peau et les cheveux selon la génétique, choisit la bouche selon l'humeur et blanchit les cheveux avec l'âge. Les traits du visage (forme, yeux, nez, sourcils, bouche) se transmettent des parents aux enfants. Encore expérimental et secret : désactivé dans le jeu.
+- **Atelier dev** réservé à l'auteur : tester les dessins de personnages et quelques raccourcis de test.
 - **Jouer aux jeux vidéo** : il faut une console ou un PC gaming. Trois boîtes de jeu au choix (44 jeux, 11 genres), écran cathodique « CHARGEMENT… PRESS START », verdict.
 - **Lire un livre** : trois couvertures au choix (36 livres, 13 genres), pages qui tournent, verdict. Chaque genre forge un trait et une compétence.
 - **9 nouveaux centres d'intérêt** : Gothique, Punk, Sorcellerie, Voyance, Peinture, Cirque, Danse, Origami, Rap.

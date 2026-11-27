@@ -274,7 +274,9 @@
       return '<div class="stat s-' + s.k + (v < 15 ? ' low' : '') + '"><span class="sl">' + s.n + '</span><b>' + v + '</b><div class="bar" role="meter" aria-label="' + s.n + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + v + '"><i style="width:' + v + '%"></i></div></div>';
     }).join('');
     const b = [];
-    if (l.prison) b.push(['r', 'Prison · ' + l.prison + ' an' + (l.prison > 1 ? 's' : '')]);
+    if (l.prison) b.push(['r', 'Prison · ' + (l.perpet ? 'à perpétuité' : l.prison + ' an' + (l.prison > 1 ? 's' : ''))]);
+    if (l.fugitif) b.push(['r', 'En cavale']);
+    if (l.gun) b.push(['b', 'Arme cachée']);
     if (l.depr) b.push(['r', 'Dépression']);
     if (l.lonely) b.push(['b', 'Solitude profonde']);
     l.ill.forEach(function (i) { b.push(['g', D.ILLS[i.id].n]); });
@@ -322,10 +324,13 @@
     requestAnimationFrame(bottom);
     setTimeout(bottom, 60);
   }
+  function navHeight() { const n = $('#gNav'); if (n && n.offsetHeight) document.documentElement.style.setProperty('--navH', n.offsetHeight + 'px'); }
+  window.addEventListener('resize', navHeight);
   function renderNav() {
     const btn = function (v, t) { return '<button class="nb' + (S.sheet && S.tab === v ? ' on' : '') + '" data-a="navtab" data-v="' + v + '">' + IC[v] + '<span>' + t + '</span></button>'; };
     const busy = !!G.pending();
     $('#gNav').innerHTML = btn('moi', 'Moi') + btn('proches', 'Proches') + '<button class="ageBtn" data-a="age" aria-label="Passer un an"' + (busy ? ' disabled' : '') + '><span>+1<br>an</span></button>' + btn('carriere', 'Carrière') + btn('biens', 'Biens');
+    navHeight();
   }
 
   // ---------- panneau ----------
@@ -336,7 +341,7 @@
     const key = S.tab + (S.view ? ':' + S.view.t + S.view.id : '');
     if (old && S.scroll._key === key) S.scroll[key] = old.scrollTop;
     p.classList.toggle('open', S.sheet);
-    p.innerHTML = '<div class="pHead"><nav class="tabs" role="tablist">' + TABS.map(function (t) { return '<button class="tab' + (S.tab === t[0] ? ' on' : '') + '" role="tab" aria-selected="' + (S.tab === t[0]) + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</nav><button class="closeSheet" data-a="sheet-close" aria-label="Fermer le panneau">✕</button></div><div class="pBody" id="pBody">' + panelBody() + '</div>';
+    p.innerHTML = '<div class="pHead"><b class="pTitle">' + (TABS.find(function (t) { return t[0] === S.tab; }) || TABS[0])[1] + '</b><nav class="tabs" role="tablist">' + TABS.map(function (t) { return '<button class="tab' + (S.tab === t[0] ? ' on' : '') + '" role="tab" aria-selected="' + (S.tab === t[0]) + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</nav><button class="closeSheet" data-a="sheet-close" aria-label="Fermer le panneau">✕</button></div><div class="pBody" id="pBody">' + panelBody() + '</div>';
     const nb = $('#pBody');
     nb.scrollTop = S.scroll[key] || 0;
     S.scroll._key = key;
@@ -383,24 +388,27 @@
     if (a >= 6) {
       const sk = D.SKILLS.map(function (s) {
         const v = l.sk[s.id], why = A.trainWhy(s.id);
-        return '<div class="sk"><span class="skn">' + esc(s.n) + '</span><div class="skb"><i style="width:' + v + '%"></i></div><span class="skv">' + Math.round(v) + '/100 · ' + skLevel(v) + '</span><button data-a="train" data-id="' + s.id + '"' + (why ? ' disabled' : '') + ' aria-label="S’entraîner : ' + esc(s.n) + '">' + (why === 'Déjà fait cette année' ? 'Fait' : why ? '—' : a >= 18 ? '150 €' : '+') + '</button></div>';
+        const tf = S.trainFx && S.trainFx.k === s.id && S.trainFx.y === l.year && v > S.trainFx.from ? S.trainFx : null;
+        return '<div class="sk"><span class="skn">' + esc(s.n) + '</span><div class="skb"><i style="width:' + (tf ? tf.from : v) + '%"></i>' + (tf ? '<b class="gain" style="left:' + tf.from + '%;width:' + (v - tf.from) + '%"></b>' : '') + '</div><span class="skv">' + Math.round(v) + '/100 · ' + skLevel(v) + '</span><button data-a="train" data-id="' + s.id + '"' + (why ? ' disabled' : '') + ' aria-label="S’entraîner : ' + esc(s.n) + '">' + (why === 'Déjà fait cette année' ? 'Fait' : why ? '—' : a >= 18 ? '150 €' : '+') + '</button></div>';
       }).join('');
       const lim = A.trainLimit(), used = A.trainedCount();
       const rule = a >= 18 ? 'Adulte : cours du soir à 150 € la séance, autant que tu veux (une par compétence et par an).'
         : 'Bonheur <b>' + Math.round(l.st.b) + '</b> : ' + (lim ? '<b>' + used + '/' + lim + '</b> séance' + (lim > 1 ? 's' : '') + ' cette année.' : 'pas d’entraînement possible cette année.') + ' Il faut 50 de bonheur pour 1 séance, 70 pour 2, 90 pour 3.';
       h += sec('Compétences <small>indispensables pour ton CV</small>', '<p class="hint">' + rule + '</p><div class="skills">' + sk + '</div>', 'y');
-      const iw = A.intsWhy();
       const ints = D.INTERESTS.filter(function (it) { return !it.new || l.year >= it.new || l.ints.indexOf(it.id) >= 0; }).map(function (it) {
         const on = l.ints.indexOf(it.id) >= 0;
-        const dis = !!iw || (!on && l.ints.length >= 2);
+        const dis = !!A.intsWhy(it.id);
         return '<button class="ib' + (on ? ' on' : '') + '" data-a="interest" data-id="' + it.id + '" aria-pressed="' + on + '"' + (dis ? ' disabled' : '') + '>' + esc(it.n) + '</button>';
       }).join('');
-      h += sec('Centres d’intérêt <small>2 maximum · 1 changement par an</small>', '<p class="hint">' + (l.ints.length ? 'Tu peux en parler avec ta famille et tes amis (onglet Proches).' : 'Choisis ce qui te passionne : tu pourras en parler avec tes proches.') + (iw === 'Un changement par an' ? ' Déjà changé cette année.' : '') + '</p><div class="ints">' + ints + '</div>', 'c');
+      h += sec('Centres d’intérêt <small>2 maximum</small>', '<p class="hint">' + (l.ints.length ? 'Tu peux en parler avec ta famille et tes amis (onglet Proches). ' : 'Choisis ce qui te passionne : tu pourras en parler avec tes proches. ') + 'Remplir une place libre : quand tu veux. Enlever ou remplacer : une fois par an, tout de suite.' + (G.isDone('ints') ? ' <b>Déjà changé cette année.</b>' : '') + '</p><div class="ints">' + ints + '</div>', 'c');
     }
+    const nm = L.M ? L.M.count(l) : 0;
+    h += sec('Tes mots <small>tes propres phrases</small>', '<p class="hint">' + (nm ? nm + ' phrase' + (nm > 1 ? 's' : '') + ' écrite' + (nm > 1 ? 's' : '') + ' de ta main. Elles reviennent tout au long de ta vie, dans la bouche de tes proches.' : 'Au fil de ta vie, on te demandera ton rêve, ton surnom, ton plat préféré, ta devise… Tes réponses reviendront plus tard, parfois au pire moment.') + '</p><div class="list">' + actBtn('data-a="mots"', 'Mes phrases', 'Ajouter, modifier, supprimer', '', 'Ouvrir ›') + '</div>', 'm');
     h += sec('Sorties', actList('self', 'sortie'), 'c');
     h += sec('Loisirs', actList('self', 'loisir'), 'b');
     h += sec('Amour', actList('self', 'amour'), 'm');
     h += sec('Tentations', actList('self', 'risque'), 'r');
+    if (l.prison) h = sec('Prison <small>' + (l.perpet ? 'à perpétuité' : 'encore ' + l.prison + ' an' + (l.prison > 1 ? 's' : '')) + '</small>', '<p class="hint">Derrière les barreaux, la plupart des actions sont bloquées. Bonne conduite, appel, évasion : à toi de voir. Tu peux écrire à tes proches (onglet Proches).</p>' + actList('self', 'prison'), 'r') + h;
     if (l.lonely) h = '<p class="hint" style="color:var(--r)">Solitude profonde : la plupart des loisirs et du travail sont bloqués. Parle à tes proches (onglet Proches) ou vois un psy pour t’en sortir.</p>' + h;
     return h;
   }
@@ -585,11 +593,83 @@
     let traits = '';
     if (v.traits) traits = '<div class="tlist">' + v.traits.map(function (t) { return '<div class="trait ink-' + t.ink + '"><b>' + esc(t.n) + '</b><small>' + esc(t.d) + '</small></div>'; }).join('') + '</div>';
     const opts = v.opts.map(function (o, i) { return optHtml(o, i, 'data-a="qopt" data-id="' + esc(String(o.id)) + '"'); }).join('');
+    if (v.mot) {
+      S.mf = { slot: v.mot.slot, sel: v.mot.sel, prev: v.mot.prev, mode: 'q' };
+      openLayer(motFormHtml({ kicker: v.kicker, title: v.title, text: v.text, v: v.mot.v || '' }) , 'q');
+      motPrev();
+      const mi = $('#mIn'); if (mi) mi.focus({ preventScroll: true });
+      renderNav();
+      return;
+    }
     const face = v.face ? '<div class="qFace">' + UI.pic(v.face) + '</div>' : '';
     const inp = v.input ? '<div class="qIn"><label for="qIn">' + esc(v.input.label || '') + '</label><div class="row"><input id="qIn" type="text" maxlength="24" autocomplete="off" value="' + esc(v.input.v || '') + '"><button type="button" class="dice" data-a="qdice" data-s="' + esc(v.input.sex || 'M') + '" aria-label="Autre idée de prénom">' + IC.dice + '</button></div></div>' : '';
     openLayer('<div class="modal ink-' + (v.ink || 'y') + '"><div class="mKick"><span>' + esc(v.kicker || '') + '</span><span>' + l.year + '</span></div><div class="mIn">' + face + '<h2>' + v.title + '</h2>' + (v.text ? '<p class="txt">' + v.text + '</p>' : '') + traits + inp + (v.q ? '<p class="qq">' + v.q + '</p>' : '') + '</div><div class="opts">' + opts + '</div></div>', 'q');
     if (v.input) { const i = $('#qIn'); if (i) { i.focus({ preventScroll: true }); i.select(); } }
     renderNav();
+  }
+  // ---------- tes mots : saisie avec aperçu en direct ----------
+  const MOT_HINT = { nom: 'Choisis l’article comme dans « un clown », « une araignée », « des abeilles ».', lieu: 'Choisis la bonne préposition : « à Tokyo », « au Japon », « en Islande ».', nomp: 'Un nom, un titre : comme tu veux.', quote: 'Écris la phrase telle que tu la dis.' };
+  function motPreWord() {
+    const mf = S.mf, Sl = L.M.SLOTS[mf.slot];
+    if (Sl.kind === 'act' && Sl.sel) return { avoir: 'avoir', etre: 'être', devenir: 'devenir', faire: 'faire', aller: 'aller', vivre: 'vivre' }[mf.sel] || '';
+    if (Sl.kind === 'nom') return { un: 'un', une: 'une', des: 'des' }[mf.sel] || '';
+    if (Sl.kind === 'lieu') return { a: 'à', au: 'au', en: 'en', aux: 'aux', dans: 'dans', sur: 'sur' }[mf.sel] || '';
+    if (Sl.kind === 'titre') return Sl.pre ? Sl.pre.trim() : '«';
+    return Sl.kind === 'quote' || Sl.kind === 'nomp' ? '«' : '';
+  }
+  function motFormHtml(o) {
+    const mf = S.mf, Sl = L.M.SLOTS[mf.slot];
+    const hint = Sl.kind === 'act' ? (Sl.sel ? 'Choisis le verbe, puis écris la suite.' : 'Commence par un verbe à l’infinitif : « imiter… », « jongler… ».')
+      : Sl.kind === 'titre' ? (mf.slot === 'dj' ? 'Choisis le style, puis la fin du nom : « DJ-Crumble ».' : mf.slot === 'fest' ? 'Choisis la musique, puis la fin du nom : « Festival des Pantoufles volantes ».' : 'Choisis le genre, puis écris le titre. Il pourra sortir un jour…') : MOT_HINT[Sl.kind];
+    const sel = Sl.sel ? '<div class="seg2 motSel">' + Sl.sel.map(function (x) { return '<button type="button" data-a="motsel" data-v="' + x[0] + '" aria-pressed="' + (mf.sel === x[0]) + '">' + esc(x[1]) + '</button>'; }).join('') + '</div>' : '';
+    const foot = mf.mode === 'q'
+      ? '<div class="opts"><button class="opt" data-a="qopt" data-id="ok"><span class="ol">✓</span><span class="ot">Valider</span></button><button class="opt alt" data-a="qopt" data-id="skip"><span class="ol">·</span><span class="ot">Je ne sais pas encore</span></button></div>'
+      : '<div class="mFoot">' + (o.canDel ? '<button class="btn ghost small" data-a="motdel">Supprimer</button>' : '') + '<button class="btn ghost small" data-a="mots">Retour</button><button class="btn" data-a="motsave">Enregistrer</button></div>';
+    return '<div class="modal ink-m motf"><div class="mKick"><span>' + esc(o.kicker || 'TES MOTS') + '</span><span>' + G.L().year + '</span></div><div class="mIn"><h2>' + o.title + '</h2>' + (o.text ? '<p class="txt">' + o.text + '</p>' : '') +
+      '<p class="hint">' + hint + '</p>' + sel +
+      '<div class="motRow"><span class="motPre" id="mPre">' + esc(motPreWord()) + '</span><input id="mIn" type="text" maxlength="60" autocomplete="off" placeholder="' + esc(Sl.ph) + '" value="' + esc(o.v || '') + '"><button type="button" class="dice" data-a="motdice" aria-label="Une idée au hasard">' + IC.dice + '</button></div>' +
+      '<p class="motPrev" id="mPrev"></p><p class="motNote">Tes mots reviendront plus tard dans ta vie. Tu peux les retrouver et les modifier dans le menu, rubrique « Mes phrases ».</p></div>' + foot + '</div>';
+  }
+  function motPrev() {
+    const mf = S.mf, el = $('#mPrev'), inp = $('#mIn');
+    if (!mf || !el || !inp) return;
+    const Sl = L.M.SLOTS[mf.slot];
+    const t = L.M.clean(inp.value);
+    el.innerHTML = '<span class="mono">Aperçu :</span> ' + L.M.preview(mf.slot, mf.prev, { s: mf.sel || Sl.def || '', t: t || Sl.ph }) + (t ? '' : ' <i>(exemple)</i>');
+    const pre = $('#mPre'); if (pre) pre.textContent = motPreWord();
+  }
+  function motsModal() {
+    const l = G.L();
+    if (!l || !L.M) return;
+    S.mf = null;
+    l.mots = l.mots || {};
+    const rows = L.M.ORDER.map(function (slot) {
+      const Sl = L.M.SLOTS[slot], list = l.mots[slot] || [];
+      return '<div class="mrow"><div class="mhead"><b>' + esc(Sl.n) + '</b><button class="btn small ghost" data-a="motedit" data-s="' + slot + '" data-i="-1">+ Ajouter</button></div>' +
+        (list.length ? '<div class="mlist">' + list.map(function (e, i) { return '<button class="mchip" data-a="motedit" data-s="' + slot + '" data-i="' + i + '"><span class="mt">' + L.M.preview(slot, L.M.DEF_PREV[slot], e) + '</span><span class="ed">✎</span></button>'; }).join('') + '</div>' : '');
+    }).join('');
+    const n = L.M.count(l);
+    openLayer('<div class="modal ink-m mots"><div class="mKick"><span>MES PHRASES</span><span>' + n + ' phrase' + (n > 1 ? 's' : '') + '</span></div><div class="mIn"><h2>Tes mots</h2><p class="txt">Tout ce que tu as écrit au fil de ta vie. Ces phrases reviennent dans le journal, dans la bouche de tes proches, parfois au pire moment. Tu peux en mettre plusieurs par sujet : le jeu pioche dedans au hasard.</p>' + rows + '</div><div class="mFoot"><button class="btn" data-a="close">Fermer</button></div></div>');
+  }
+  function motEdit(slot, i) {
+    const l = G.L(), Sl = L.M.SLOTS[slot];
+    if (!Sl) return;
+    const e = i >= 0 && l.mots[slot] ? l.mots[slot][i] : null;
+    S.mf = { slot: slot, sel: e ? e.s : Sl.def || '', prev: L.M.DEF_PREV[slot], mode: 'edit', idx: e ? i : -1 };
+    openLayer(motFormHtml({ kicker: 'MES PHRASES', title: esc(Sl.n), v: e ? e.t : '', canDel: !!e }));
+    motPrev();
+    const mi = $('#mIn'); if (mi) mi.focus({ preventScroll: true });
+  }
+  function intSwapModal(id) {
+    const l = G.L(), it = D.interest(id);
+    if (A.intsWhy(id)) return;
+    openLayer('<div class="modal ink-c"><div class="mKick"><span>CENTRES D’INTÉRÊT</span></div><div class="mIn"><h2>Place à : ' + esc(it.n) + '</h2><p class="txt">Tu as déjà deux passions. Laquelle remplacer ? (Un changement par an.)</p></div><div class="opts">' +
+      l.ints.map(function (x, i) { return optHtml({ l: esc(D.interest(x).n), sub: 'Remplacer par ' + esc(it.n) }, i, 'data-a="intswap" data-id="' + id + '" data-rep="' + x + '"'); }).join('') +
+      '</div><div class="mFoot"><button class="btn ghost small" data-a="close">Annuler</button></div></div>');
+  }
+  function devCodeModal() {
+    openLayer('<div class="modal ink-b"><div class="mKick"><span>ACCÈS RÉSERVÉ</span></div><div class="mIn"><h2>Code ?</h2><div class="qIn"><div class="row"><input id="devCode" type="password" autocomplete="off" maxlength="24" aria-label="Code"></div></div></div><div class="mFoot"><button class="btn ghost small" data-a="close">Annuler</button><button class="btn" data-a="devok">Entrer</button></div></div>');
+    const i = $('#devCode'); if (i) i.focus({ preventScroll: true });
   }
   function showResult(res, ink, help) {
     openLayer('<div class="modal ink-' + (ink || 'y') + '"><div class="mKick"><span>' + esc(String(res.title || 'Résultat').toUpperCase()) + '</span><span>' + G.L().year + '</span></div><div class="mIn">' + (res.pick ? '<p class="qq">Ton choix : ' + res.pick + '</p>' : '') + '</div><div class="res"><p>' + res.t + '</p>' + chips(res.d) + '</div>' + (help || '') + '<div class="mFoot"><button class="btn" data-a="next">Continuer</button></div></div>', 'q');
@@ -604,8 +684,7 @@
     if (q.k === 'qte') return runQte(q);
     showQ(q);
   };
-  const HELP = '<p class="help">Dans la vraie vie, si tu traverses des idées noires, tu n’es pas seul·e : appelle le <b>3114</b> (gratuit, 24 h/24, 7 j/7).</p>';
-  UI.HELP = HELP;
+  UI.HELP = '';
   function runQte(q) {
     const l = G.L();
     const root = $('#layer');
@@ -616,7 +695,7 @@
       UI.refresh();
       notes();
       if (G.L().dead) { closeLayer(); save(); UI.dead(); return; }
-      if (res) { res.title = q.t === 'hosp' ? 'Urgences' : 'Idées noires'; showResult(res, 'g', q.t === 'noir' ? HELP : ''); }
+      if (res) { res.title = q.t === 'hosp' ? 'Urgences' : 'Idées noires'; showResult(res, 'g', ''); }
       else UI.flush();
       save();
     };
@@ -663,7 +742,7 @@
     sfx('page');
     const posters = list.map(function (f, i) {
       const g = G0[f.g];
-      return '<button class="poster ' + M.cls + ' ink-' + g.ink + '" style="--i:' + i + '" data-a="mediapick" data-m="' + kind + '" data-i="' + i + '"><span class="pg">' + esc(g.n) + '</span><span class="pt">' + esc(f.t) + '</span><span class="pm">' + M.meta(f) + '</span></button>';
+      return '<button class="poster ' + M.cls + ' ink-' + g.ink + '" style="--i:' + i + '" data-a="mediapick" data-m="' + kind + '" data-i="' + i + '"><span class="pg">' + esc(g.n) + '</span>' + (f.mine ? '<span class="pmine">★ Ton idée</span>' : '') + '<span class="pt">' + esc(f.t) + '</span><span class="pm">' + M.meta(f) + '</span></button>';
     }).join('');
     const cost = A.cost(d);
     openLayer('<div class="modal ink-' + M.ink + ' cine"><div class="mKick"><span>' + esc(M.kick()) + '</span><span>' + (cost ? L.money(cost) : 'gratuit') + '</span></div><div class="marquee"><span>' + M.marquee + '</span></div><div class="mIn"><p class="txt">' + M.txt + '</p></div><div class="posters">' + posters + '</div><div class="mFoot"><button class="btn ghost small" data-a="close">' + M.no + '</button></div></div>');
@@ -692,7 +771,8 @@
     const list = A.festOffers(), m = G.L().money;
     sfx('page');
     const posters = list.map(function (f, i) {
-      return '<button class="poster gig ink-' + (f.kind === 'dj' ? 'm' : 'c') + '" style="--i:' + i + '" data-a="festpick" data-i="' + i + '"' + (m < f.cost ? ' disabled' : '') + '><span class="pg">' + (f.kind === 'dj' ? 'Concert' : 'Festival') + ' · ' + esc(f.st) + '</span><span class="pt">' + esc(f.n) + '</span>' + (f.line ? '<span class="pl">avec ' + esc(f.line.join(' + ')) + '</span>' : '') + '<span class="pm">' + (m < f.cost ? 'Trop cher · ' : '') + L.money(f.cost) + '</span></button>';
+      return '<button class="poster gig ink-' + (f.kind === 'dj' ? 'm' : 'c') + '" style="--i:' + i + '" data-a="festpick" data-i="' + i + '"' + (m < f.cost ? ' disabled' : '') + '><span class="pg">' + (f.kind === 'dj' ? 'Concert' : 'Festival') + ' · ' + esc(f.st) + '</span>' + (f.mine ? '<span class="pmine">★ Ton idée</span>' : '') + '<span class="pt">'
+ + esc(f.n) + '</span>' + (f.line ? '<span class="pl">avec ' + esc(f.line.join(' + ')) + '</span>' : '') + '<span class="pm">' + (m < f.cost ? 'Trop cher · ' : '') + L.money(f.cost) + '</span></button>';
     }).join('');
     openLayer('<div class="modal ink-m cine"><div class="mKick"><span>CE WEEK-END</span><span>' + L.money(m) + '</span></div><div class="marquee"><span>LIVE · LIVE · LIVE</span></div><div class="mIn"><p class="txt">Trois affiches collées sur le mur de la ville. Laquelle te fait vibrer ?</p></div><div class="posters">' + posters + '</div><div class="mFoot"><button class="btn ghost small" data-a="close">Pas ce week-end</button></div></div>');
   }
@@ -810,7 +890,16 @@
     S.dev.crowd = [];
     for (let i = 0; i < 18; i++) { const sex = L.chance(0.5) ? 'M' : 'F'; const lk = D.look(); S.dev.crowd.push({ look: lk, age: L.ri(14, 90), sex: sex, mood: L.ri(10, 95), seed: L.ri(1, 1e6) }); }
   }
-  L.dev = function () { const o = G.A().opts; o.dev = 1; save(); devModal(); return 'Atelier dev ouvert'; };
+  // l'atelier dev est secret : il faut le code de l'auteur (seule son empreinte est dans le code)
+  L.dev = function (code) {
+    const o = G.A().opts;
+    if (!o.devk) {
+      if (hash(String(code || '').toLowerCase().replace(/\s+/g, '')) !== 2102073718) return false;
+      o.devk = 1; save();
+    }
+    devModal();
+    return true;
+  };
 
   function festPick(i) {
     const f = A.fest[i];
@@ -892,7 +981,8 @@
     openLayer('<div class="modal ink-c"><div class="mKick"><span>MENU</span><button class="vtap" data-a="devtap">v' + L.VERSION + '</button></div><div class="mIn"><h2>Pause</h2><p class="txt">Ta partie est sauvegardée automatiquement.</p></div><div class="opts">' +
       '<button class="opt" data-a="home"><span class="ol">←</span><span class="ot">Écran titre</span></button>' +
       '<button class="opt" data-a="account"><span class="ol">★</span><span class="ot">Compte, succès et cimetière</span></button>' +
-      (o.dev ? '<button class="opt" data-a="dev"><span class="ol">⚙</span><span class="ot">Atelier dev</span><span class="os">Tester tes dessins de personnages, triches</span></button>' : '') +
+      (inGame ? '<button class="opt" data-a="mots"><span class="ol">✎</span><span class="ot">Mes phrases</span><span class="os">Tes mots, ceux qui reviennent dans ta vie</span></button>' : '') +
+      (o.devk ? '<button class="opt" data-a="dev"><span class="ol">⚙</span><span class="ot">Atelier dev</span><span class="os">Tester tes dessins de personnages, triches</span></button>' : '') +
       '<p class="qq optHead">Son</p>' +
       '<button class="opt" data-a="snd" data-v="sfx" aria-pressed="' + !!o.sfx + '"><span class="ol">♪</span><span class="ot">Bruitages : ' + (o.sfx ? 'activés' : 'coupés') + '</span><span class="os">Tampons, clics, sirènes de succès</span></button>' +
       '<button class="opt" data-a="snd" data-v="mus" aria-pressed="' + !!o.mus + '"><span class="ol">♫</span><span class="ot">Musique d’ambiance : ' + (o.mus ? 'activée' : 'coupée') + '</span><span class="os">Lo-fi d’imprimerie, qui change avec ton âge</span></button>' +
@@ -911,7 +1001,7 @@
     const ach = D.ACH.map(function (x) { const ok = !!a.ach[x.id]; return '<div class="' + (ok ? 'on' : 'off') + '"><b>' + esc(x.n) + '</b>' + esc(x.d) + ' · ' + x.xp + ' XP</div>'; }).join('');
     const grave = a.lives.length ? a.lives.map(function (v) { return '<div class="' + (v.legend ? 'gold' : '') + '"><b>' + esc(v.n) + '</b><span>' + v.age + ' ans · ' + esc(v.job || 'sans métier') + ' · ' + L.money(v.money) + '</span><em>' + v.by + '–' + v.dy + '<br>+' + (v.xp || 0) + ' XP</em></div>'; }).join('') : '<p class="empty">Personne pour l’instant. Profite.</p>';
     openLayer('<div class="modal ink-y"><div class="mKick"><span>COMPTE</span><span>' + a.born + ' vie' + (a.born > 1 ? 's' : '') + '</span></div><div class="mIn">' +
-      '<div class="lvBig"><span class="n">' + a.lvl + '</span><div style="flex:1;min-width:0"><b style="font-size:1.2rem;font-stretch:85%">' + esc(D.title(a.lvl)) + '</b><div class="mbar" style="margin:6px 0"><i style="width:' + Math.round(a.xp / need * 100) + '%"></i></div><span class="mono" style="font-size:.82rem;color:var(--dim)">' + a.xp + ' / ' + need + ' XP · +3,5 % par niveau</span></div></div>' +
+      '<div class="lvBig"><span class="n">' + a.lvl + '</span><div style="flex:1;min-width:0"><b style="font-size:1.2rem;font-stretch:85%">' + esc(D.title(a.lvl)) + '</b><div class="mbar" style="margin:6px 0"><i style="width:' + Math.round(a.xp / need * 100) + '%"></i></div><span class="mono" style="font-size:.82rem;color:var(--dim)">' + a.xp + ' / ' + need + ' XP</span></div></div>' +
       (next ? '<p class="hint" style="margin-top:10px">Prochaine récompense au niveau ' + next.lvl + ' : <b>' + esc(next.n) + '</b>.</p>' : '') +
       '<p class="hint">L’XP se gagne en vivant : chaque année, diplômes, promotions, mariages, enfants, succès, et un bonus à la mort selon l’âge atteint.</p>' +
       '<section class="sec ink-y"><h3>Récompenses</h3><div class="achs">' + rw + '</div></section>' +
@@ -939,7 +1029,9 @@
     const l = G.L(), d = l.dead, a = G.A(), sex = l.me.sex;
     if (!d) return UI.enterGame();
     const c = G.ctx();
-    const epi = L.T(l.traits.length ? EPI[l.traits[0]] : 'Une vie trop courte pour être résumée.', c);
+    const dv = l.mots && l.mots.devise && l.mots.devise.length ? l.mots.devise[l.mots.devise.length - 1].t : '';
+    const sn = l.mots && l.mots.surnom && l.mots.surnom.length ? l.mots.surnom[0].t : '';
+    const epi = dv ? esc(dv) : L.T(l.traits.length ? EPI[l.traits[0]] : 'Une vie trop courte pour être résumée.', c);
     const cause = d.cause === 'depression' ? L.gx('Parti', 'Partie', sex) + ' à ' + d.age + ' ans, des suites d’une dépression.' : L.gx('Mort', 'Morte', sex) + ' à ' + d.age + ' ans, ' + (D.CAUSES[d.cause] || D.CAUSES.maladie).replace('entouré·e', L.gx('entouré', 'entourée', sex)) + '.';
     const job = l.job ? G.jobTitle() : l.cv.length ? G.jobLabel(l.cv[l.cv.length - 1].id, sex, l.cv[l.cv.length - 1].lvl) : (l.retired ? 'Retraité' + (sex === 'F' ? 'e' : '') : 'Aucun');
     const bestDip = l.dip.slice().sort(function (x, y) { return y.lvl - x.lvl; })[0];
@@ -950,9 +1042,8 @@
     $('#sDead').innerHTML = '<div class="dWrap">' + CBAR +
       '<article class="avis" style="margin-top:18px"><span class="reg" style="top:10px;left:10px"></span><span class="reg" style="top:10px;right:10px"></span>' +
       '<p class="kick">AVIS DE DÉCÈS · ' + esc(l.city).toUpperCase() + '</p><h1>' + esc(l.me.first) + ' <span>' + esc(l.me.last) + '</span></h1>' +
-      '<p class="dates">' + l.me.by + ' — ' + d.year + '</p><p class="cause">' + esc(cause) + '</p><blockquote>« ' + epi + ' »</blockquote>' +
+      (sn ? '<p class="dit">dit « ' + esc(sn) + ' »</p>' : '') + '<p class="dates">' + l.me.by + ' — ' + d.year + '</p><p class="cause">' + esc(cause) + '</p><blockquote>« ' + epi + ' »</blockquote>' +
       '<dl><dt>Métier</dt><dd>' + esc(job) + '</dd><dt>Diplôme</dt><dd>' + esc(bestDip ? bestDip.n : 'Aucun') + '</dd><dt>Famille</dt><dd>' + (part ? esc(L.relName(part)) + ' ' + esc(part.first) + ' · ' : '') + L.plural(kids, 'enfant') + '</dd><dt>Amis</dt><dd>' + friends + '</dd><dt>Fortune</dt><dd>' + L.money(l.money) + '</dd><dt>Caractère</dt><dd>' + esc(l.traits.map(function (t) { return L.gs(D.TRAITS[t].n, sex); }).join(', ') || 'Pas encore forgé') + '</dd></dl></article>' +
-      (d.cause === 'depression' ? HELP.replace('class="help"', 'class="help" style="margin:18px 0 0"') : '') +
       '<div class="dXp"><div class="bigNum"><b>+' + (l.xpLife || 0) + '</b><span>XP pour ton compte</span></div><button class="lvChip" data-a="account">Niveau ' + a.lvl + ' · ' + esc(D.title(a.lvl)) + '</button></div>' +
       (heirs.length ? '<section class="heirs"><h3>Continuer avec un enfant</h3><div class="list">' + heirs.map(function (p) { return '<button class="pr" data-a="heir" data-p="' + p.id + '">' + UI.pic(p) + '<span class="pn">' + esc(p.first) + ' ' + esc(p.last) + '</span><span class="pm">' + esc(L.relName(p)) + ' · ' + ageTxt(p.age) + '</span><span class="rq">Jouer ›</span></button>'; }).join('') + '</div><p class="hint" style="margin-top:8px">Ton enfant hérite de ta fortune (moins 20 % de droits de succession, partagée entre frères et sœurs).</p></section>' : '') +
       '<div class="dBtns"><button class="btn" data-a="new">Nouvelle vie</button><button class="btn ghost" data-a="home">Écran titre</button></div></div>';
@@ -1025,7 +1116,34 @@
     mediapick: function (ds) { mediaPick(ds.m, Number(ds.i)); },
     tree: function () { treeModal(); },
     treeperson: function (ds) { closeLayer(); S.view = { t: 'person', id: Number(ds.p) }; S.tab = 'proches'; S.sheet = true; renderPanel(); renderNav(); },
-    devtap: function () { S.devTaps = (S.devTaps || 0) + 1; if (S.devTaps >= 5) { S.devTaps = 0; L.dev(); toast('Mode dev', 'Atelier dev débloqué : il est aussi dans le menu.'); } },
+    devtap: function () { S.devTaps = (S.devTaps || 0) + 1; if (S.devTaps >= 5) { S.devTaps = 0; if (G.A().opts.devk) devModal(); else devCodeModal(); } },
+    devok: function () { const i = $('#devCode'); if (!L.dev(i ? i.value : '')) { closeLayer(); toast('Accès refusé', 'Code incorrect.'); } },
+    mots: function () { motsModal(); },
+    motedit: function (ds) { motEdit(ds.s, Number(ds.i)); },
+    motsel: function (ds) { if (!S.mf) return; S.mf.sel = ds.v; document.querySelectorAll('.motSel button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === ds.v)); }); motPrev(); },
+    motdice: function () {
+      if (!S.mf) return;
+      const ex = L.M.example(S.mf.slot), Sl = L.M.SLOTS[S.mf.slot];
+      if (Sl.sel) { S.mf.sel = ex.s; document.querySelectorAll('.motSel button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === ex.s)); }); }
+      const i = $('#mIn'); if (i) i.value = ex.t;
+      motPrev();
+    },
+    motsave: function () {
+      const l = G.L(), mf = S.mf, i = $('#mIn');
+      if (!l || !mf || !i) return;
+      const t = L.M.clean(i.value);
+      if (!t) return toast('Tes mots', 'Écris quelque chose d’abord.');
+      const e = { s: mf.sel || '', t: t };
+      if (mf.idx >= 0 && l.mots[mf.slot]) l.mots[mf.slot][mf.idx] = e; else L.M.add(l, mf.slot, e);
+      save(); notes(); UI.refresh(); motsModal();
+    },
+    motdel: function () {
+      const l = G.L(), mf = S.mf;
+      if (!l || !mf || mf.idx < 0) return;
+      l.mots[mf.slot].splice(mf.idx, 1);
+      save(); UI.refresh(); motsModal();
+    },
+    intswap: function (ds) { closeLayer(); afterAct(A.toggleInterest(ds.id, ds.rep)); },
     dev: function () { devModal(); },
     devview: function (ds) { S.dev.view = ds.v; devModal(); },
     devp: function (ds) {
@@ -1055,7 +1173,7 @@
     devart: function () {
       const o = G.A().opts;
       o.art = o.art ? 0 : 1;
-      L.ART.on = !!o.art;
+      L.ART.on = !!(o.devk && o.art);
       save();
       if (L.ART.on) L.ART.preload(function () { UI.refresh(); devModal(); }); else { UI.refresh(); devModal(); }
     },
@@ -1079,7 +1197,7 @@
     vol: function (ds) { const o = G.A().opts; o.vol = clamp(Math.round((o.vol + Number(ds.v) * 0.1) * 10) / 10, 0, 1); if (L.SND) L.SND.set(o); sfx('tap'); save(); menuModal(); },
     person: function (ds) { S.view = { t: 'person', id: Number(ds.p) }; S.tab = 'proches'; renderPanel(); },
     back: function () { S.view = null; renderPanel(); },
-    train: function (ds) { afterAct(A.train(ds.id)); },
+    train: function (ds) { const l = G.L(); S.trainFx = { k: ds.id, from: l.sk[ds.id], y: l.year }; afterAct(A.train(ds.id)); },
     diet: function (ds) { const l = G.L(); l.diet = ds.v; renderPanel(); toast('Régime alimentaire', { malbouffe: 'Malbouffe : frites, sodas, bonheur immédiat. Ta santé, elle, fera la grimace chaque année.', equilibre: 'Équilibré : un peu de tout, ni trop, ni trop peu.', sain: 'Healthy : brocolis, quinoa, smoothies verts. Ta santé te remerciera chaque année.' }[ds.v]); save(); },
     club: function (ds) { afterAct(A.club(ds.id)); },
     stopschool: function () {
@@ -1111,8 +1229,13 @@
       const q = G.pending();
       if (!q) return UI.flush();
       const ink = (G.view(q) || {}).ink;
-      const inp = $('#qIn');
-      const res = G.answer(ds.id, inp ? inp.value : undefined);
+      let val;
+      if (S.mf && S.mf.mode === 'q' && $('#mIn')) {
+        val = { s: S.mf.sel, t: $('#mIn').value };
+        if (ds.id === 'ok' && !L.M.clean(val.t)) { toast('Tes mots', 'Écris quelque chose, ou choisis « Je ne sais pas encore ».'); return; }
+        S.mf = null;
+      } else { const inp = $('#qIn'); val = inp ? inp.value : undefined; }
+      const res = G.answer(ds.id, val);
       UI.refresh();
       notes();
       if (res && res.t) showResult(res, ink); else UI.flush();
@@ -1127,7 +1250,8 @@
 
   UI.init = function () {
     if (L.SND) L.SND.set(G.A().opts);
-    if (L.ART) { L.ART.on = !!G.A().opts.art; if (L.ART.on && L.ART.has()) L.ART.preload(function () { UI.refresh(); }); }
+    if (L.ART) { const o0 = G.A().opts; L.ART.on = !!(o0.devk && o0.art); if (L.ART.on && L.ART.has()) L.ART.preload(function () { UI.refresh(); }); }
+    document.addEventListener('input', function (e) { if (e.target && e.target.id === 'mIn') motPrev(); });
 
     document.addEventListener('pointerdown', function () { if (L.SND) L.SND.unlock(); }, true);
     document.addEventListener('keydown', function () { if (L.SND) L.SND.unlock(); }, true);
@@ -1145,6 +1269,8 @@
     cr.addEventListener('change', formInput);
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && e.target && e.target.id === 'qIn') { e.preventDefault(); const b = $('#layer .opt[data-a="qopt"]'); if (b) b.click(); return; }
+      if (e.key === 'Enter' && e.target && e.target.id === 'mIn') { e.preventDefault(); const b = $('#layer [data-a="motsave"]') || $('#layer .opt[data-a="qopt"][data-id="ok"]'); if (b) b.click(); return; }
+      if (e.key === 'Enter' && e.target && e.target.id === 'devCode') { e.preventDefault(); H.devok(); return; }
       if (e.key === 'Escape' && S.layer === 'free') { closeLayer(); return; }
       if (e.key === 'Escape' && S.sheet) { setSheet(false); }
     });
