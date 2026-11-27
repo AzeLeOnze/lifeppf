@@ -667,6 +667,21 @@
       l.ints.map(function (x, i) { return optHtml({ l: esc(D.interest(x).n), sub: 'Remplacer par ' + esc(it.n) }, i, 'data-a="intswap" data-id="' + id + '" data-rep="' + x + '"'); }).join('') +
       '</div><div class="mFoot"><button class="btn ghost small" data-a="close">Annuler</button></div></div>');
   }
+  // fin d'une vie : garder ses phrases pour la suivante ?
+  function askKeep(next) {
+    const a = G.A(), cur = G.L();
+    if (cur) G.stashMots(cur);
+    const n = G.lastMotsCount(), mode = a.opts.keepMots || 'ask';
+    S.keepMots = false;
+    if (!n || mode === 'never') return next();
+    if (mode === 'always') { S.keepMots = true; return next(); }
+    S.keepNext = next;
+    openLayer('<div class="modal ink-m"><div class="mKick"><span>TES PHRASES</span><span>' + n + ' phrase' + (n > 1 ? 's' : '') + '</span></div><div class="mIn"><h2>Garder tes mots ?</h2><p class="txt">Ta vie précédente comptait <b>' + n + ' phrase' + (n > 1 ? 's' : '') + '</b> écrite' + (n > 1 ? 's' : '') + ' de ta main : rêves, surnoms, films inventés… Veux-tu les garder pour cette nouvelle vie ?</p></div><div class="opts">' +
+      optHtml({ l: 'Oui', sub: 'Tes phrases reviendront dans cette nouvelle vie' }, 0, 'data-a="keep" data-v="yes"') +
+      optHtml({ l: 'Non', sub: 'On repart de zéro' }, 1, 'data-a="keep" data-v="no"') +
+      optHtml({ l: 'Toujours oui', sub: 'La question ne sera plus posée (modifiable dans le menu)' }, 2, 'data-a="keep" data-v="always"') +
+      '</div></div>');
+  }
   function devCodeModal() {
     openLayer('<div class="modal ink-b"><div class="mKick"><span>ACCÈS RÉSERVÉ</span></div><div class="mIn"><h2>Code ?</h2><div class="qIn"><div class="row"><input id="devCode" type="password" autocomplete="off" maxlength="24" aria-label="Code"></div></div></div><div class="mFoot"><button class="btn ghost small" data-a="close">Annuler</button><button class="btn" data-a="devok">Entrer</button></div></div>');
     const i = $('#devCode'); if (i) i.focus({ preventScroll: true });
@@ -981,6 +996,7 @@
     openLayer('<div class="modal ink-c"><div class="mKick"><span>MENU</span><button class="vtap" data-a="devtap">v' + L.VERSION + '</button></div><div class="mIn"><h2>Pause</h2><p class="txt">Ta partie est sauvegardée automatiquement.</p></div><div class="opts">' +
       '<button class="opt" data-a="home"><span class="ol">←</span><span class="ot">Écran titre</span></button>' +
       '<button class="opt" data-a="account"><span class="ol">★</span><span class="ot">Compte, succès et cimetière</span></button>' +
+      '<button class="opt" data-a="keepmode"><span class="ol">↻</span><span class="ot">Garder mes phrases d’une vie à l’autre : ' + ({ ask: 'demander', always: 'toujours', never: 'jamais' }[o.keepMots || 'ask']) + '</span><span class="os">À la fin d’une vie ou d’une nouvelle partie</span></button>' +
       (inGame ? '<button class="opt" data-a="mots"><span class="ol">✎</span><span class="ot">Mes phrases</span><span class="os">Tes mots, ceux qui reviennent dans ta vie</span></button>' : '') +
       (o.devk ? '<button class="opt" data-a="dev"><span class="ol">⚙</span><span class="ot">Atelier dev</span><span class="os">Tester tes dessins de personnages, triches</span></button>' : '') +
       '<p class="qq optHead">Son</p>' +
@@ -1072,7 +1088,16 @@
   }
   const H = {
     continue: function () { const l = G.L(); if (!l) return UI.title(); if (l.dead) return UI.dead(); UI.enterGame(); },
-    new: function () { S.cf = null; UI.create(); },
+    new: function () { askKeep(function () { S.cf = null; UI.create(); }); },
+    keep: function (ds) {
+      const o = G.A().opts;
+      if (ds.v === 'always') o.keepMots = 'always';
+      S.keepMots = ds.v !== 'no';
+      save(); closeLayer();
+      const n = S.keepNext; S.keepNext = null;
+      if (n) n();
+    },
+    keepmode: function () { const o = G.A().opts; o.keepMots = { ask: 'always', always: 'never', never: 'ask' }[o.keepMots || 'ask']; save(); menuModal(); },
     home: function () { closeLayer(); save(); UI.title(); },
     account: function () { accountModal(); },
     menu: function () { menuModal(); },
@@ -1089,7 +1114,8 @@
       const first = L.cap(clean(f.first) || D.firstName(f.sex === 'F' ? 'F' : 'M', year));
       const last = L.cap(clean(f.last) || L.pick(D.LAST));
       if (f.fam && f.year !== year) f.fam = null;
-      G.newLife({ first: first, last: last, sex: f.sex, city: f.city, year: year, skill: f.skill, trait: f.trait, wealth: f.wealth, fam: G.has('reroll') ? f.fam : null });
+      G.newLife({ first: first, last: last, sex: f.sex, city: f.city, year: year, skill: f.skill, trait: f.trait, wealth: f.wealth, fam: G.has('reroll') ? f.fam : null, mots: S.keepMots ? G.A().lastMots : null });
+      S.keepMots = false;
       S.cf = null; S.tab = 'moi';
       save();
       notes();
@@ -1241,7 +1267,7 @@
       if (res && res.t) showResult(res, ink); else UI.flush();
     },
     next: function () { UI.flush(); },
-    heir: function (ds) { if (G.continueAs(Number(ds.p))) { save(); notes(); S.tab = 'moi'; UI.enterGame(); } },
+    heir: function (ds) { const id = Number(ds.p); askKeep(function () { if (G.continueAs(id, S.keepMots ? G.A().lastMots : null)) { S.keepMots = false; save(); notes(); S.tab = 'moi'; UI.enterGame(); } }); },
     quitlife: function () { confirmBox('Abandonner cette vie ?', 'Elle disparaît pour de bon : pas d’avis de décès, pas de cimetière. Ton compte garde son niveau et l’XP déjà gagnée.', 'Abandonner', function () { G.endLife(); save(); UI.title(); }); },
     yes: function () { const fn = S.confirm; S.confirm = null; closeLayer(); if (fn) fn(); },
     fs: function (ds) { const o = G.A().opts; o.fs = clamp((o.fs || 16) + Number(ds.v), 14, 21); UI.applyFs(); save(); }

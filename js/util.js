@@ -3,7 +3,7 @@ window.LP = window.LP || {};
 (function (L) {
   'use strict';
 
-  L.VERSION = '0.4.1';
+  L.VERSION = '0.4.2';
   L.CREDIT = "un jeu d'Aze Le Onze";
 
   // ---------- hasard (remplaçable pour les tests) ----------

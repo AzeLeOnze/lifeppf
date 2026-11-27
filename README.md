@@ -1,6 +1,6 @@
 # LifePPF — Life Past Present Futur
 
-Une vie entière, une année à la fois. Simulateur de vie en texte par Aze Le Onze. Version 0.4.1.
+Une vie entière, une année à la fois. Simulateur de vie en texte par Aze Le Onze. Version 0.4.2.
 
 **Jouer : https://azeleonze.github.io/lifeppf/**
 

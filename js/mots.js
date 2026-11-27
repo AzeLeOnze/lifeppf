@@ -273,7 +273,9 @@
   M.yearly = function (l) {
     const a = l.me.age;
     l.mots = l.mots || {}; l.motQ = l.motQ || {};
-    if (!l.queue.some(function (q) { return q.t === 'mot'; })) {
+    let asked = false;
+    // au plus une question tous les deux ans
+    if (!l.queue.some(function (q) { return q.t === 'mot'; }) && (l.motLast == null || a - l.motLast >= 2)) {
       const due = M.PROMPTS.filter(function (p) {
         const st = l.motQ[p.id];
         if (st === 1 || st === 2) return false;
@@ -283,9 +285,11 @@
       if (due && (a <= due.a[1] || L.chance(0.6))) {
         const x = asker(due);
         l.queue.push({ k: 'q', t: 'mot', id: due.id, x: x ? x.id : 0 });
+        l.motLast = a; asked = true;
       }
     }
-    if (M.count(l) && L.chance(0.38)) {
+    // un de tes mots qui revient : de temps en temps seulement, jamais l'année d'une question
+    if (!asked && M.count(l) && L.chance(0.16)) {
       const cands = [];
       M.EV.forEach(function (e) { const c = eligible(e, l); if (c) cands.push({ e: e, c: c }); });
       const pick = L.wpick(cands, function (x) { return x.e.w || 10; });

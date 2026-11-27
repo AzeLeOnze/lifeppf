@@ -425,6 +425,7 @@
     if (gk.length) G.log(L.T('Côté gènes : la peau de ' + (L.chance(0.5) ? '{mere.n}' : '{pere.n}') + ', le menton de ' + (L.chance(0.5) ? '{mere.n}' : '{pere.n}') + ', et peut-être un petit don pour ' + gk.map(function (k) { return D.skillName(k).toLowerCase(); }).join(', ') + '.', c));
     const gps = G.alive('gp');
     if (gps.length) G.log(L.T('Côté grands-parents : ' + gps.map(function (g) { return (g.sex === 'F' ? 'mamie ' : 'papi ') + '<b>' + L.esc(g.first) + '</b>'; }).join(', ') + '.', c));
+    takeMots(l, o.mots);
     S.account.born++;
     G.emit('life');
     return l;
@@ -1613,10 +1614,11 @@
       traits: l.traits.map(function (t) { return L.gs(D.TRAITS[t].n, l.me.sex); }), legend: G.has('legende') ? 1 : 0
     });
     S.account.lives = S.account.lives.slice(0, 40);
+    G.stashMots(l);
     G.emit('dead');
   };
   G.heirs = function () { return S.life.people.filter(function (p) { return p.alive && p.rel === 'enf'; }); };
-  G.continueAs = function (childId) {
+  G.continueAs = function (childId, mots) {
     const old = S.life;
     const ch = old.people.find(function (p) { return p.id === childId && p.alive; });
     if (!ch) return null;
@@ -1625,6 +1627,7 @@
     const l = baseLife({ first: ch.first, last: ch.last, sex: ch.sex, city: old.city, year: old.year, age: ch.age, look: ch.look, gen: old.gen + 1, wealth: old.money > 500000 ? 'riche' : old.money > 100000 ? 'aisee' : old.money > 15000 ? 'moyenne' : 'modeste' });
     l.born = old.city;
     S.life = l;
+    takeMots(l, mots);
     // le parent disparu
     const om = old.me;
     const rel = om.sex === 'F' ? 'mere' : om.sex === 'M' ? 'pere' : 'par';
@@ -1664,7 +1667,15 @@
     G.emit('life');
     return l;
   };
-  G.endLife = function () { S.life = null; G.emit('life'); };
+  G.endLife = function () { if (S.life) G.stashMots(S.life); S.life = null; G.emit('life'); };
+  // tes phrases à toi : gardées de côté à la fin d'une vie, reprises dans la suivante si tu le veux
+  G.stashMots = function (l) { if (l && L.M && L.M.count(l)) S.account.lastMots = JSON.parse(JSON.stringify(l.mots)); };
+  G.lastMotsCount = function () { const m = S.account.lastMots; return m && L.M ? L.M.count({ mots: m }) : 0; };
+  function takeMots(l, mots) {
+    if (!mots || !L.M) return;
+    l.mots = JSON.parse(JSON.stringify(mots));
+    L.M.PROMPTS.forEach(function (p) { if (L.M.has(l, p.slot)) l.motQ[p.id] = 1; });
+  }
 
   // ---------- emploi : l'année ----------
   function jobYear(l) {

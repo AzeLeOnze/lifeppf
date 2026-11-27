@@ -1,5 +1,9 @@
 # LifePPF — notes de version
 
+## 0.4.2 — 27 novembre 2026
+- **Tes mots plus discrets** : une question au plus tous les deux ans, et tes phrases reviennent environ deux fois moins souvent (jamais l'année d'une question). Tes créations passent un peu moins souvent à l'affiche.
+- **Garder tes phrases d'une vie à l'autre** : à la fin d'une vie (nouvelle vie ou continuer avec un enfant), le jeu demande si tu veux garder tes phrases : Oui, Non ou Toujours oui (la question n'est alors plus posée). Réglable dans le menu : demander, toujours, jamais.
+
 ## 0.4.1 — 27 novembre 2026
 - **Tes créations** : invente tes propres films, jeux vidéo, livres, DJ et festivals (avec leur genre ou leur style), dans « Mes phrases » ou quand le jeu te pose la question. Ils sortent ensuite au cinéma, dans ta ludothèque, en librairie, en concert ou en festival (marqués « ★ Ton idée »), et reviennent dans ta vie : un studio sort ton film, ton DJ mixe au mariage de ta sœur…
 - **Compétences** : la barre ne change plus de longueur quand le bouton passe à « Fait », et le gain de l'entraînement s'affiche en magenta.

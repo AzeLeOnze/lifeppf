@@ -619,7 +619,7 @@
   // une de tes créations a des chances de se retrouver à l'affiche
   function withMine(pool, slot, genres) {
     const own = L.M ? L.M.mine(slot).filter(function (f) { return !genres || genres[f.g]; }) : [];
-    return own.length && L.chance(0.45) ? [L.pick(own)].concat(pool) : pool;
+    return own.length && L.chance(0.3) ? [L.pick(own)].concat(pool) : pool;
   }
   A.cineOffers = function () {
     const pool = withMine(L.shuffle(D.FILMS.slice()), 'film', D.GENRES), out = [], gs = {};
@@ -696,8 +696,8 @@
       else out.push({ kind: 'fest', n: fests[i], st: L.pick(D.FEST_STYLES), cost: L.ri(14, 32) * 5, line: [djs[5 + i], djs[9 + i]] });
     }
     // tes DJ et tes festivals passent parfois en ville
-    if (myDj.length && L.chance(0.45)) { const m = L.pick(myDj); out[0] = { kind: 'dj', n: m.t, st: m.g || L.pick(D.DJ_STYLES), cost: L.ri(7, 12) * 5, mine: 1 }; }
-    if (myFest.length && L.chance(0.45)) { const m = L.pick(myFest); out[2] = { kind: 'fest', n: m.t, st: m.g || L.pick(D.FEST_STYLES), cost: L.ri(14, 32) * 5, line: [djs[6], djs[10]], mine: 1 }; }
+    if (myDj.length && L.chance(0.3)) { const m = L.pick(myDj); out[0] = { kind: 'dj', n: m.t, st: m.g || L.pick(D.DJ_STYLES), cost: L.ri(7, 12) * 5, mine: 1 }; }
+    if (myFest.length && L.chance(0.3)) { const m = L.pick(myFest); out[2] = { kind: 'fest', n: m.t, st: m.g || L.pick(D.FEST_STYLES), cost: L.ri(14, 32) * 5, line: [djs[6], djs[10]], mine: 1 }; }
     A.fest = L.shuffle(out);
     return A.fest;
   };
